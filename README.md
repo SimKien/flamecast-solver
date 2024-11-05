@@ -1,1 +1,2 @@
 # flamecast-solver
+This project contains the library solver for heuristically solving flamecast-instances and the main application which executes the solving of flamecast-instances and tests the solver-library.
