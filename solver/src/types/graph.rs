@@ -29,6 +29,36 @@ impl DirectedGraph {
             .collect()
     }
 
+    pub fn get_layers(&self) -> Vec<Vec<Vertex>> {
+        // get the layers of the graph
+        let mut layers = Vec::new();
+        let mut current_layer = self.get_sources();
+        let mut next_layer = Vec::new();
+
+        while !current_layer.is_empty() {
+            layers.push(current_layer.clone());
+
+            for vertex in &current_layer {
+                let outgoing_edge = self.outgoing_edge(*vertex);
+                match outgoing_edge {
+                    Some(edge) => {
+                        next_layer.push(edge.1);
+                    }
+                    None => {
+                        break;
+                    }
+                }
+            }
+            next_layer.sort();
+            next_layer.dedup();
+
+            current_layer = next_layer;
+            next_layer = Vec::new();
+        }
+
+        return layers;
+    }
+
     pub fn outgoing_edge(&self, vertex: Vertex) -> Option<DirectedEdge> {
         let possible_edge = self.edges.iter().find(|(v1, _)| *v1 == vertex);
         match possible_edge {

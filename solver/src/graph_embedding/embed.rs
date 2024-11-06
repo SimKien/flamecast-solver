@@ -8,7 +8,7 @@ use clarabel::solver::{
 
 use super::{calculate_a_matrix, calculate_b_vector, calculate_p_matrix, calculate_q_vector};
 
-pub fn embed_graph(
+pub fn embed_directed_graph(
     graph: &DirectedGraph,
     alpha: f32,
     sources: &Vec<Vertex>,
