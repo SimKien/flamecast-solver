@@ -3,38 +3,47 @@ use rand::Rng;
 use crate::DirectedGraph;
 
 pub fn generate_random_directed_graph(num_nodes: usize, num_layers: usize) -> DirectedGraph {
+    // Assertion: num_nodes > 2 * num_layers + 2
+
     let mut rng = rand::thread_rng();
 
-    let mut vertices = Vec::new();
-    let mut edges = Vec::new();
-
-    // Generate random layer sizes
-    let mut layer_sizes = Vec::new();
-    let mut remaining_num_nodes = num_nodes;
-    for i in 0..(num_layers - 1) {
-        let num_nodes_in_layer = rng.gen_range(1..=(remaining_num_nodes - (num_layers - i - 1)));
-        layer_sizes.push(num_nodes_in_layer);
-        remaining_num_nodes -= num_nodes_in_layer;
-    }
-    layer_sizes.push(remaining_num_nodes);
-    layer_sizes.sort();
-    layer_sizes.reverse();
-
-    // assign vertices to layers and fill vertices vector
-    let mut layers = Vec::new();
-    let mut current_layer = Vec::new();
-    let mut current_layer_index = 0;
-    for i in 0..num_nodes {
-        vertices.push(i);
-        current_layer.push(i);
-        if current_layer.len() == layer_sizes[current_layer_index] {
-            layers.push(current_layer);
-            current_layer = Vec::new();
-            current_layer_index += 1;
+    // Generate random layers in descending order of size
+    let mut split_indexes = Vec::new();
+    let half_nodes = num_nodes / 2;
+    for _ in 0..(num_layers - 1) {
+        let mut split_index = rng.gen_range(1..num_nodes);
+        if !split_indexes.contains(&split_index) {
+            split_indexes.push(split_index);
+            continue;
         }
+        if split_index < half_nodes {
+            while split_indexes.contains(&split_index) {
+                split_index += 1;
+            }
+        } else {
+            while split_indexes.contains(&split_index) {
+                split_index -= 1;
+            }
+        }
+        split_indexes.push(split_index);
     }
+    split_indexes.sort();
+
+    let mut layers = Vec::new();
+    let mut current_split_index = 0;
+    for index in split_indexes {
+        let layer = (current_split_index..index).collect::<Vec<usize>>();
+        layers.push(layer);
+        current_split_index = index;
+    }
+    layers.push((current_split_index..num_nodes).collect::<Vec<usize>>());
+    layers.sort_by(|a, b| b.len().cmp(&a.len()));
+
+    // fill vertices vector
+    let vertices = (0..num_nodes).collect::<Vec<usize>>();
 
     // generate random edges between following layers
+    let mut edges = Vec::new();
     for i in 0..(num_layers - 1) {
         let layer1 = &layers[i];
         let layer2 = &layers[i + 1];

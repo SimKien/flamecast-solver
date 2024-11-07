@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::types::{DirectedGraph, Vertex, VertexEmbeddings};
 use clarabel::solver::{
-    DefaultSettings, DefaultSolver, IPSolver,
+    DefaultSettings, DefaultSettingsBuilder, DefaultSolver, IPSolver,
     SupportedConeT::{self, ZeroConeT},
 };
 
@@ -46,7 +46,10 @@ pub fn embed_directed_graph(
     let cones: [SupportedConeT<f32>; 1] = [ZeroConeT(subject_to_dimension)];
 
     // create settings for clarabel
-    let settings: DefaultSettings<f32> = DefaultSettings::default();
+    let settings: DefaultSettings<f32> = DefaultSettingsBuilder::default()
+        .verbose(false)
+        .build()
+        .unwrap_or(DefaultSettings::default());
 
     let mut solver = DefaultSolver::new(&p, &q, &a, &b, &cones, settings);
     solver.solve();

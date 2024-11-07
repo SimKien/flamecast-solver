@@ -33,16 +33,27 @@ pub fn calculate_p_matrix(
     let mut p_values = Vec::new();
     for (index, vertex) in graph.vertices.iter().enumerate() {
         let connections = vertex_connections.get(vertex).unwrap();
-        col_ptr[index + 1] = col_ptr[index] + connections.len() + 1;
+        let upper_connections = connections
+            .iter()
+            .filter(|(x, _)| *vertex_indexes.get(x).unwrap() < index)
+            .collect::<Vec<&(usize, f32)>>();
+        col_ptr[index + 1] = col_ptr[index] + upper_connections.len() + 1;
         col_ptr[index + 1 + number_of_vertices] =
-            col_ptr[index + 1] + 2 * graph.edges.len() + number_of_vertices;
-        let main_index = p_values.len();
-        p_values.push(0.0);
-        row_val.push(index);
-        for (connected_vertex, flow_weight) in connections {
-            p_values[main_index] += flow_weight;
-            p_values.push(-*flow_weight);
-            row_val.push(*vertex_indexes.get(connected_vertex).unwrap());
+            col_ptr[index + 1] + graph.edges.len() + number_of_vertices;
+
+        let mut new_values = Vec::new();
+        new_values.push((index, 0.0));
+        for (connected_vertex, flow_weight) in connections.iter() {
+            new_values[0].1 += flow_weight;
+            let connected_index = *vertex_indexes.get(connected_vertex).unwrap();
+            if connected_index < index {
+                new_values.push((connected_index, -flow_weight));
+            }
+        }
+        new_values.sort_by(|a, b| a.0.cmp(&b.0));
+        for (row, value) in new_values {
+            row_val.push(row);
+            p_values.push(value);
         }
     }
 

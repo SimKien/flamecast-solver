@@ -3,8 +3,8 @@ use solver::{
     embed_graph, generate_random_graph, get_layers, hello_world, plot_graph, VertexEmbeddings,
 };
 
-pub const NUM_NODES: usize = 50;
-pub const NUM_LAYERS: usize = 4;
+pub const NUM_NODES: usize = 200;
+pub const NUM_LAYERS: usize = 5;
 pub const ALPHA: f32 = 0.0;
 
 fn main() {
