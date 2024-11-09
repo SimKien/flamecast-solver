@@ -4,6 +4,7 @@ mod plotting;
 mod types;
 
 use graph_embedding::embed_directed_graph;
+pub use graph_embedding::SearchDepth;
 use graph_generation::generate_random_directed_graph;
 use plotting::plot_embedded_graph;
 pub use types::*;
@@ -30,9 +31,10 @@ pub fn get_layers(graph: &DirectedGraph) -> Vec<Vec<Vertex>> {
 
 pub fn embed_graph(
     graph: DirectedGraph,
-    alpha: f32,
+    alpha: f64,
     sources_embeddings: &VertexEmbeddings,
     drains_embeddings: &VertexEmbeddings,
+    search_depth: SearchDepth,
 ) -> GraphEmbedding {
     let sources = &get_sources(&graph);
     let drains = &get_drains(&graph);
@@ -43,6 +45,7 @@ pub fn embed_graph(
         drains,
         sources_embeddings,
         drains_embeddings,
+        search_depth,
     );
     return GraphEmbedding::new(graph, graph_embedding);
 }

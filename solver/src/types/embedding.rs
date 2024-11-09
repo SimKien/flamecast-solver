@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::{DirectedGraph, Vertex};
 
-pub type EmbeddedVertex = (f32, f32); // (x-coordinate, y-coordinate) of a vertex
+pub type EmbeddedVertex = (f64, f64); // (x-coordinate, y-coordinate) of a vertex
 
 pub type VertexEmbeddings = HashMap<Vertex, EmbeddedVertex>;
 
@@ -19,7 +19,7 @@ impl GraphEmbedding {
         }
     }
 
-    pub fn calculate_costs(&self, alpha: f32) -> f32 {
+    pub fn calculate_costs(&self, alpha: f64) -> f64 {
         // evaluate the cost of the embedding
         let edge_flows = self.base_graph.calculate_edge_flows();
         let mut cost = 0.0;
@@ -31,7 +31,7 @@ impl GraphEmbedding {
             let edge_len = ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt();
             let flow = *edge_flows.get(&edge).unwrap();
 
-            cost += edge_len * (flow as f32).powf(alpha);
+            cost += edge_len * (flow as f64).powf(alpha);
         }
 
         return cost;

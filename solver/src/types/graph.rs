@@ -3,6 +3,7 @@ use std::collections::HashMap;
 pub type Vertex = usize;
 pub type DirectedEdge = (Vertex, Vertex);
 
+#[derive(Debug, Clone)]
 pub struct DirectedGraph {
     pub vertices: Vec<Vertex>,
     pub edges: Vec<DirectedEdge>,
