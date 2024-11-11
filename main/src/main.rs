@@ -4,7 +4,8 @@ use std::env;
 
 use rand::Rng;
 use solver::{
-    embed_graph, generate_random_graph, get_layers, plot_graph, SearchDepth, VertexEmbeddings,
+    embed_graph, generate_random_graph, get_layers, plot_graph, Options, SearchDepth,
+    VertexEmbeddings,
 };
 use test_graphs::{TestGraph, TESTGRAPHS};
 
@@ -15,6 +16,7 @@ pub const SEARCH_DEPTH: SearchDepth = SearchDepth::Middle;
 
 fn main() {
     //TODO: add comparison of d_i and the actual lengths of the edges
+    //TODO: implement show_flows and show_layers
 
     let args = env::args().collect::<Vec<String>>();
 
@@ -49,7 +51,7 @@ fn main() {
         ALPHA,
         &sources_embeddings,
         &drains_embeddings,
-        SEARCH_DEPTH,
+        Options::new(true, SearchDepth::Middle, true, false),
     );
 
     plot_graph(&embedded_graph, true, true);

@@ -4,7 +4,7 @@ mod plotting;
 mod types;
 
 use graph_embedding::embed_directed_graph;
-pub use graph_embedding::SearchDepth;
+pub use graph_embedding::{Options, SearchDepth};
 use graph_generation::generate_random_directed_graph;
 use plotting::plot_embedded_graph;
 pub use types::*;
@@ -34,7 +34,7 @@ pub fn embed_graph(
     alpha: f64,
     sources_embeddings: &VertexEmbeddings,
     drains_embeddings: &VertexEmbeddings,
-    search_depth: SearchDepth,
+    options: Options,
 ) -> GraphEmbedding {
     let sources = &get_sources(&graph);
     let drains = &get_drains(&graph);
@@ -45,7 +45,7 @@ pub fn embed_graph(
         drains,
         sources_embeddings,
         drains_embeddings,
-        search_depth,
+        options,
     );
     return GraphEmbedding::new(graph, graph_embedding);
 }
