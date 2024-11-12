@@ -51,6 +51,7 @@ pub fn embed_directed_graph(
     let settings: DefaultSettings<f64> = DefaultSettingsBuilder::default()
         .verbose(options.verbose)
         .max_iter(options.search_depth as u32)
+        .time_limit(options.time_limit)
         .build()
         .unwrap_or(DefaultSettings::default());
 

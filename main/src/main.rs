@@ -1,6 +1,6 @@
 mod test_graphs;
 
-use std::env;
+use std::{env, f64::INFINITY};
 
 use rand::Rng;
 use solver::{
@@ -48,7 +48,7 @@ fn main() {
         ALPHA,
         &sources_embeddings,
         &drains_embeddings,
-        Options::new(true, SearchDepth::Middle, true, false),
+        Options::new(true, SearchDepth::Middle, INFINITY, true, false),
     );
 
     plot_graph(&embedded_graph, true, true);
