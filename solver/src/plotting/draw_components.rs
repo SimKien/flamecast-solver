@@ -1,6 +1,6 @@
 use plotters::{
     prelude::{BitMapBackend, Circle, EmptyElement, PathElement, Text},
-    style::{IntoFont, ShapeStyle, BLACK},
+    style::{IntoFont, RGBColor, ShapeStyle, BLACK},
 };
 
 use crate::EmbeddedVertex;
@@ -9,6 +9,7 @@ use super::{convert_vertex_to_i32, NODE_RADIUS};
 
 pub fn create_node(
     embedded_vertex: &EmbeddedVertex,
+    color: RGBColor,
 ) -> plotters::element::ComposedElement<
     (i32, i32),
     BitMapBackend,
@@ -18,7 +19,7 @@ pub fn create_node(
     let coordinates = convert_vertex_to_i32(embedded_vertex);
 
     return EmptyElement::at(coordinates)
-        + Circle::new((0, 0), NODE_RADIUS, ShapeStyle::from(&BLACK).filled())
+        + Circle::new((0, 0), NODE_RADIUS, ShapeStyle::from(color).filled())
         + Text::new(
             "".to_string(),
             (2 * NODE_RADIUS, 0),

@@ -15,9 +15,6 @@ pub const ALPHA: f64 = 0.0;
 pub const SEARCH_DEPTH: SearchDepth = SearchDepth::Middle;
 
 fn main() {
-    //TODO: add comparison of d_i and the actual lengths of the edges
-    //TODO: implement show_flows and show_layers
-
     let args = env::args().collect::<Vec<String>>();
 
     let test_graph = convert_args_to_graph(args);
