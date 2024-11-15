@@ -18,7 +18,7 @@ pub fn embed_directed_graph(
     options: Options,
 ) -> VertexEmbeddings {
     // embed the graph using clarabel
-    // assertions: fully connected graph, layered graph, only one outgoing edge from each vertex
+    // assertions: layered graph, only one outgoing edge from each vertex
     let number_of_vertices = graph.vertices.len();
     let number_of_edges = graph.edges.len();
     let number_of_sources = sources.len();

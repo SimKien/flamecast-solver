@@ -1,5 +1,3 @@
-use std::f64::INFINITY;
-
 #[derive(Debug, Clone, Copy)]
 pub enum SearchDepth {
     Shallow = 100,
@@ -22,7 +20,7 @@ impl Default for Options {
         Options {
             print_embedding_infos: true,
             search_depth: SearchDepth::Middle,
-            time_limit: INFINITY,
+            time_limit: f64::INFINITY,
             show_calculated_actual_edge_length_diff: false,
             verbose: false,
         }

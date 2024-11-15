@@ -10,8 +10,8 @@ use crate::{DirectedGraph, GraphEmbedding};
 
 use super::{create_edge, create_node, DISTINCT_COLORS, NUM_DISTINCT_COLORS};
 
-pub const ROOT_WIDTH: u32 = 1024;
-pub const ROOT_HEIGHT: u32 = 768;
+pub const ROOT_WIDTH: u32 = 1000;
+pub const ROOT_HEIGHT: u32 = 1000;
 
 pub const NODE_RADIUS: i32 = 6;
 

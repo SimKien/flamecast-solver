@@ -70,7 +70,7 @@ impl DirectedGraph {
 
     pub fn calculate_edge_flows(&self) -> HashMap<DirectedEdge, usize> {
         // calculate the flows of the edges of the graph
-        // assertions: only one outgoing edge from each vertex, layered, fully connected graph
+        // assertions: only one outgoing edge from each vertex, layered graph
         let mut edge_flows = HashMap::new();
         let mut vertex_flows = HashMap::new();
 
