@@ -19,25 +19,28 @@ pub fn embed_directed_graph(
 ) -> VertexEmbeddings {
     // embed the graph using clarabel
     // assertions: layered graph, only one outgoing edge from each vertex
-    let number_of_vertices = graph.vertices.len();
     let number_of_edges = graph.edges.len();
-    let number_of_sources = sources.len();
-    let number_of_drains = drains.len();
-    let number_of_endpoints = number_of_sources + number_of_drains;
-    let subject_to_dimension = 2 * number_of_endpoints + 3 * number_of_edges;
+
+    let regarded_vertices = graph
+        .vertices
+        .iter()
+        .filter(|vertex| !sources.contains(vertex) && !drains.contains(vertex))
+        .map(|x| *x)
+        .collect::<Vec<Vertex>>();
+    let number_of_regarded_vertices = regarded_vertices.len();
 
     // calculate P-Matrix for clarabel
-    let p = calculate_p_matrix(number_of_vertices, number_of_edges);
+    let p = calculate_p_matrix(number_of_regarded_vertices, number_of_edges);
 
     // calculate q-vector for clarabel
-    let q = calculate_q_vector(graph, alpha);
+    let q = calculate_q_vector(graph, number_of_regarded_vertices, alpha);
 
     // calculate A-Matrix for clarabel
-    let a = calculate_a_matrix(graph, sources, drains);
+    let a = calculate_a_matrix(graph, &regarded_vertices);
 
     // calculate b-vector for clarabel
     let b = calculate_b_vector(
-        subject_to_dimension,
+        graph,
         sources,
         drains,
         sources_embeddings,
@@ -45,7 +48,7 @@ pub fn embed_directed_graph(
     );
 
     // set cones for clarabel
-    let cones = calculate_cones(number_of_endpoints, number_of_edges);
+    let cones = calculate_cones(number_of_edges);
 
     // create settings for clarabel
     let settings: DefaultSettings<f64> = DefaultSettingsBuilder::default()
@@ -58,18 +61,28 @@ pub fn embed_directed_graph(
     let mut solver = DefaultSolver::new(&p, &q, &a, &b, &cones, settings);
     solver.solve();
 
-    let solution = &solver.solution.x; // x is of the form [x1, x2, ..., xn, y1, y2, ..., yn, d1, d2, ..., dm]
+    // x is of the form [xi, xi+1, ..., xj, yi, yi+1, ..., yj, d1, d2, ..., dm], without the (x, y) of sources or drains
+    let solution = &solver.solution.x;
 
     // save the solution in the VertexEmbeddings format
     let mut result = VertexEmbeddings::new();
-    graph.vertices.iter().enumerate().for_each(|(i, vertex)| {
-        let x = solution[i];
-        let y = solution[i + number_of_vertices];
+    result.extend(sources_embeddings.iter());
+    result.extend(drains_embeddings.iter());
+    for (index, vertex) in regarded_vertices.iter().enumerate() {
+        let x = solution[index];
+        let y = solution[index + number_of_regarded_vertices];
         result.insert(*vertex, (x, y));
-    });
+    }
 
     // print information about the solution process
-    print_informations(&result, graph, &options, &solver.info, &solver.solution);
+    print_informations(
+        &result,
+        graph,
+        number_of_regarded_vertices,
+        &options,
+        &solver.info,
+        &solver.solution,
+    );
 
     return result;
 }
@@ -77,6 +90,7 @@ pub fn embed_directed_graph(
 fn print_informations(
     vertex_embeddings: &VertexEmbeddings,
     graph: &DirectedGraph,
+    number_of_regarded_vertices: usize,
     options: &Options,
     solver_info: &DefaultInfo<f64>,
     solution: &DefaultSolution<f64>,
@@ -88,13 +102,14 @@ fn print_informations(
     }
 
     if options.show_calculated_actual_edge_length_diff {
+        let solution_vertices_number = 2 * number_of_regarded_vertices;
         let mut max_diff = 0.0;
         for (index, edge) in graph.edges.iter().enumerate() {
             let source_embedding = vertex_embeddings.get(&edge.0).unwrap();
             let target_embedding = vertex_embeddings.get(&edge.1).unwrap();
             let edge_length = (source_embedding.0 - target_embedding.0)
                 .hypot(source_embedding.1 - target_embedding.1);
-            let dif = (edge_length - solution.x[2 * graph.vertices.len() + index]).abs();
+            let dif = (edge_length - solution.x[solution_vertices_number + index]).abs();
             if dif > max_diff {
                 max_diff = dif;
             }

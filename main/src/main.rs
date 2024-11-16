@@ -22,7 +22,6 @@ fn main() {
     let test_graph = convert_args_to_graph(args);
     if test_graph.is_none() {
         println!("Usage: cargo run");
-        println!("Usage: cargo run <test_graph_index>");
         println!("Usage: cargo run <test_graph_index>,<test_graph_index>,...");
         println!("Usage: cargo run <num_nodes> <num_layers> <alpha>");
         println!("When combining test graphs, the graphs must have the same number of layers.");
