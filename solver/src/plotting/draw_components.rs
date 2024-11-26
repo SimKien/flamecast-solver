@@ -3,12 +3,12 @@ use plotters::{
     style::{IntoFont, RGBColor, ShapeStyle, BLACK},
 };
 
-use crate::EmbeddedVertex;
+use crate::VertexEmbedding;
 
 use super::{convert_vertex_to_i32, NODE_RADIUS};
 
 pub fn create_node(
-    embedded_vertex: &EmbeddedVertex,
+    embedded_vertex: &VertexEmbedding,
     color: RGBColor,
 ) -> plotters::element::ComposedElement<
     (i32, i32),
@@ -27,7 +27,7 @@ pub fn create_node(
         );
 }
 
-pub fn create_edge(source: &EmbeddedVertex, target: &EmbeddedVertex) -> PathElement<(i32, i32)> {
+pub fn create_edge(source: &VertexEmbedding, target: &VertexEmbedding) -> PathElement<(i32, i32)> {
     let source_coordinates = convert_vertex_to_i32(source);
     let target_coordinates = convert_vertex_to_i32(target);
 

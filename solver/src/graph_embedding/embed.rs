@@ -1,4 +1,4 @@
-use crate::types::{DirectedGraph, Vertex, VertexEmbeddings};
+use crate::types::{LayeredGraph, Vertex, VertexEmbeddings};
 use clarabel::solver::{
     DefaultInfo, DefaultSettings, DefaultSettingsBuilder, DefaultSolution, DefaultSolver, IPSolver,
 };
@@ -9,7 +9,7 @@ use super::{
 };
 
 pub fn embed_directed_graph(
-    graph: &DirectedGraph,
+    graph: &LayeredGraph,
     alpha: f64,
     sources: &Vec<Vertex>,
     drains: &Vec<Vertex>,
@@ -19,10 +19,11 @@ pub fn embed_directed_graph(
 ) -> VertexEmbeddings {
     // embed the graph using clarabel
     // assertions: layered graph, only one outgoing edge from each vertex
-    let number_of_edges = graph.edges.len();
+    let cumulated_edges = graph.cumulate_edges();
+    let number_of_edges = cumulated_edges.len();
 
-    let regarded_vertices = graph
-        .vertices
+    let cumulated_vertices = graph.cumulate_vertices();
+    let regarded_vertices = cumulated_vertices
         .iter()
         .filter(|vertex| !sources.contains(vertex) && !drains.contains(vertex))
         .map(|x| *x)
@@ -33,14 +34,14 @@ pub fn embed_directed_graph(
     let p = calculate_p_matrix(number_of_regarded_vertices, number_of_edges);
 
     // calculate q-vector for clarabel
-    let q = calculate_q_vector(graph, number_of_regarded_vertices, alpha);
+    let q = calculate_q_vector(graph, &cumulated_edges, number_of_regarded_vertices, alpha);
 
     // calculate A-Matrix for clarabel
-    let a = calculate_a_matrix(graph, &regarded_vertices);
+    let a = calculate_a_matrix(&cumulated_edges, &regarded_vertices);
 
     // calculate b-vector for clarabel
     let b = calculate_b_vector(
-        graph,
+        &cumulated_edges,
         sources,
         drains,
         sources_embeddings,
@@ -89,7 +90,7 @@ pub fn embed_directed_graph(
 
 fn print_informations(
     vertex_embeddings: &VertexEmbeddings,
-    graph: &DirectedGraph,
+    graph: &LayeredGraph,
     number_of_regarded_vertices: usize,
     options: &Options,
     solver_info: &DefaultInfo<f64>,
@@ -104,7 +105,7 @@ fn print_informations(
     if options.show_calculated_actual_edge_length_diff {
         let solution_vertices_number = 2 * number_of_regarded_vertices;
         let mut max_diff = 0.0;
-        for (index, edge) in graph.edges.iter().enumerate() {
+        for (index, edge) in graph.cumulate_edges().iter().enumerate() {
             let source_embedding = vertex_embeddings.get(&edge.0).unwrap();
             let target_embedding = vertex_embeddings.get(&edge.1).unwrap();
             let edge_length = (source_embedding.0 - target_embedding.0)

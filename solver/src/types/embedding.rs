@@ -1,18 +1,18 @@
 use std::collections::HashMap;
 
-use super::{DirectedGraph, Vertex};
+use super::{LayeredGraph, Vertex};
 
-pub type EmbeddedVertex = (f64, f64); // (x-coordinate, y-coordinate) of a vertex
+pub type VertexEmbedding = (f64, f64); // (x-coordinate, y-coordinate) of a vertex
 
-pub type VertexEmbeddings = HashMap<Vertex, EmbeddedVertex>;
+pub type VertexEmbeddings = HashMap<Vertex, VertexEmbedding>;
 
 pub struct GraphEmbedding {
-    pub base_graph: DirectedGraph,
+    pub base_graph: LayeredGraph,
     pub vertices_embeddings: VertexEmbeddings,
 }
 
 impl GraphEmbedding {
-    pub fn new(base_graph: DirectedGraph, vertices_embeddings: VertexEmbeddings) -> Self {
+    pub fn new(base_graph: LayeredGraph, vertices_embeddings: VertexEmbeddings) -> Self {
         Self {
             base_graph,
             vertices_embeddings,
@@ -20,18 +20,20 @@ impl GraphEmbedding {
     }
 
     pub fn calculate_costs(&self, alpha: f64) -> f64 {
-        // evaluate the cost of the embedding
+        // calculate the cost of the embedding
         let edge_flows = self.base_graph.calculate_edge_flows();
         let mut cost = 0.0;
 
-        for edge in self.base_graph.edges.iter() {
-            let (x1, y1) = self.vertices_embeddings.get(&edge.0).unwrap();
-            let (x2, y2) = self.vertices_embeddings.get(&edge.1).unwrap();
+        for layer in &self.base_graph.layers {
+            for (source, target) in &layer.edges {
+                let (x1, y1) = self.vertices_embeddings.get(source).unwrap();
+                let (x2, y2) = self.vertices_embeddings.get(target).unwrap();
 
-            let edge_len = ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt();
-            let flow = *edge_flows.get(&edge).unwrap();
+                let edge_len = (x1 - x2).hypot(y1 - y2);
+                let flow = *edge_flows.get(&(*source, *target)).unwrap();
 
-            cost += edge_len * (flow as f64).powf(alpha);
+                cost += edge_len * (flow as f64).powf(alpha);
+            }
         }
 
         return cost;

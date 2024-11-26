@@ -1,19 +1,33 @@
 use std::sync::LazyLock;
 
-use solver::{DirectedGraph, VertexEmbeddings};
+use solver::{Layer, LayeredGraph, VertexEmbeddings};
 
 #[derive(Debug, Clone)]
 pub struct TestGraph {
-    pub graph: DirectedGraph,
+    pub graph: LayeredGraph,
     pub source_embeddings: VertexEmbeddings,
     pub drain_embeddings: VertexEmbeddings,
     pub alpha: f64,
 }
 
 const GRAPH_1: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: DirectedGraph {
-        vertices: vec![0, 1, 2, 3],
-        edges: vec![(0, 2), (1, 2), (2, 3)],
+    graph: LayeredGraph {
+        layers: vec![
+            Layer {
+                vertices: vec![0, 1],
+                edges: vec![(0, 2), (1, 2)],
+            },
+            Layer {
+                vertices: vec![2],
+                edges: vec![(2, 3)],
+            },
+            Layer {
+                vertices: vec![3],
+                edges: vec![],
+            },
+        ],
+        next_vertex: 4,
+        removed_vertices: vec![],
     },
     source_embeddings: {
         let mut source_embeddings = VertexEmbeddings::new();
@@ -30,9 +44,23 @@ const GRAPH_1: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_2: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: DirectedGraph {
-        vertices: vec![0, 1, 2, 3, 4],
-        edges: vec![(0, 3), (1, 3), (2, 3), (3, 4)],
+    graph: LayeredGraph {
+        layers: vec![
+            Layer {
+                vertices: vec![0, 1, 2],
+                edges: vec![(0, 3), (1, 3), (2, 3)],
+            },
+            Layer {
+                vertices: vec![3],
+                edges: vec![(3, 4)],
+            },
+            Layer {
+                vertices: vec![4],
+                edges: vec![],
+            },
+        ],
+        next_vertex: 5,
+        removed_vertices: vec![],
     },
     source_embeddings: {
         let mut source_embeddings = VertexEmbeddings::new();
@@ -50,9 +78,23 @@ const GRAPH_2: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_3: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: DirectedGraph {
-        vertices: vec![0, 1, 2, 3, 4, 5],
-        edges: vec![(0, 4), (1, 4), (2, 4), (3, 4), (4, 5)],
+    graph: LayeredGraph {
+        layers: vec![
+            Layer {
+                vertices: vec![0, 1, 2, 3],
+                edges: vec![(0, 4), (1, 4), (2, 4), (3, 4)],
+            },
+            Layer {
+                vertices: vec![4],
+                edges: vec![(4, 5)],
+            },
+            Layer {
+                vertices: vec![5],
+                edges: vec![],
+            },
+        ],
+        next_vertex: 6,
+        removed_vertices: vec![],
     },
     source_embeddings: {
         let mut source_embeddings = VertexEmbeddings::new();
@@ -71,9 +113,27 @@ const GRAPH_3: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_4: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: DirectedGraph {
-        vertices: vec![0, 1, 2, 3, 4],
-        edges: vec![(0, 2), (1, 2), (2, 3), (3, 4)],
+    graph: LayeredGraph {
+        layers: vec![
+            Layer {
+                vertices: vec![0, 1],
+                edges: vec![(0, 2), (1, 2)],
+            },
+            Layer {
+                vertices: vec![2],
+                edges: vec![(2, 3)],
+            },
+            Layer {
+                vertices: vec![3],
+                edges: vec![(3, 4)],
+            },
+            Layer {
+                vertices: vec![4],
+                edges: vec![],
+            },
+        ],
+        next_vertex: 5,
+        removed_vertices: vec![],
     },
     source_embeddings: {
         let mut source_embeddings = VertexEmbeddings::new();
@@ -90,9 +150,23 @@ const GRAPH_4: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_5: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: DirectedGraph {
-        vertices: vec![0, 1, 2, 3, 4, 5],
-        edges: vec![(0, 4), (1, 4), (2, 4), (3, 4), (4, 5)],
+    graph: LayeredGraph {
+        layers: vec![
+            Layer {
+                vertices: vec![0, 1, 2, 3],
+                edges: vec![(0, 4), (1, 4), (2, 4), (3, 4)],
+            },
+            Layer {
+                vertices: vec![4],
+                edges: vec![(4, 5)],
+            },
+            Layer {
+                vertices: vec![5],
+                edges: vec![],
+            },
+        ],
+        next_vertex: 6,
+        removed_vertices: vec![],
     },
     source_embeddings: {
         let mut source_embeddings = VertexEmbeddings::new();
@@ -111,9 +185,23 @@ const GRAPH_5: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_6: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: DirectedGraph {
-        vertices: vec![0, 1, 2, 3, 4, 5, 6],
-        edges: vec![(0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 6)],
+    graph: LayeredGraph {
+        layers: vec![
+            Layer {
+                vertices: vec![0, 1, 2, 3, 4],
+                edges: vec![(0, 5), (1, 5), (2, 5), (3, 5), (4, 5)],
+            },
+            Layer {
+                vertices: vec![5],
+                edges: vec![(5, 6)],
+            },
+            Layer {
+                vertices: vec![6],
+                edges: vec![],
+            },
+        ],
+        next_vertex: 7,
+        removed_vertices: vec![],
     },
     source_embeddings: {
         let mut source_embeddings = VertexEmbeddings::new();
@@ -133,9 +221,23 @@ const GRAPH_6: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_7: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: DirectedGraph {
-        vertices: vec![0, 1, 2, 3, 4, 5, 6, 7],
-        edges: vec![(0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 7)],
+    graph: LayeredGraph {
+        layers: vec![
+            Layer {
+                vertices: vec![0, 1, 2, 3, 4, 5],
+                edges: vec![(0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6)],
+            },
+            Layer {
+                vertices: vec![6],
+                edges: vec![(6, 7)],
+            },
+            Layer {
+                vertices: vec![7],
+                edges: vec![],
+            },
+        ],
+        next_vertex: 8,
+        removed_vertices: vec![],
     },
     source_embeddings: {
         let mut source_embeddings = VertexEmbeddings::new();
@@ -156,19 +258,27 @@ const GRAPH_7: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_8: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: DirectedGraph {
-        vertices: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        edges: vec![
-            (0, 3),
-            (1, 3),
-            (2, 3),
-            (3, 4),
-            (4, 5),
-            (6, 7),
-            (7, 4),
-            (8, 9),
-            (9, 4),
+    graph: LayeredGraph {
+        layers: vec![
+            Layer {
+                vertices: vec![0, 1, 2, 6, 8],
+                edges: vec![(0, 3), (1, 3), (2, 3), (6, 7), (8, 9)],
+            },
+            Layer {
+                vertices: vec![3, 7, 9],
+                edges: vec![(3, 4), (7, 4), (9, 4)],
+            },
+            Layer {
+                vertices: vec![4],
+                edges: vec![(4, 5)],
+            },
+            Layer {
+                vertices: vec![5],
+                edges: vec![],
+            },
         ],
+        next_vertex: 10,
+        removed_vertices: vec![],
     },
     source_embeddings: {
         let mut source_embeddings = VertexEmbeddings::new();
@@ -193,28 +303,41 @@ pub const TESTGRAPHS: [LazyLock<TestGraph>; 8] = [
 
 pub fn combine_test_graphs(graph1: &mut TestGraph, graph2: &TestGraph) -> Option<TestGraph> {
     // Check if the graphs have the same number of layers
-    if graph1.graph.get_layers().len() != graph2.graph.get_layers().len() {
+    if graph1.graph.get_vertex_layers().len() != graph2.graph.get_vertex_layers().len() {
         return None;
     }
 
     let mut new_graph = graph1.clone();
-    let max_vertex = graph1.graph.vertices.iter().max().unwrap();
+    let max_vertex = *graph1.graph.cumulate_vertices().iter().max().unwrap();
 
-    new_graph.graph.vertices.extend(
-        graph2
-            .graph
-            .vertices
-            .iter()
-            .cloned()
-            .map(|v| v + max_vertex + 1),
-    );
-    new_graph.graph.edges.extend(
-        graph2
-            .graph
-            .edges
-            .iter()
-            .map(|(u, v)| (*u + max_vertex + 1, *v + max_vertex + 1)),
-    );
+    new_graph
+        .graph
+        .layers
+        .iter_mut()
+        .enumerate()
+        .for_each(|(index, layer)| {
+            layer.vertices.extend(
+                graph2
+                    .graph
+                    .layers
+                    .get(index)
+                    .unwrap()
+                    .vertices
+                    .iter()
+                    .cloned()
+                    .map(|v| v + max_vertex + 1),
+            );
+            layer.edges.extend(
+                graph2
+                    .graph
+                    .layers
+                    .get(index)
+                    .unwrap()
+                    .edges
+                    .iter()
+                    .map(|(u, v)| (*u + max_vertex + 1, *v + max_vertex + 1)),
+            );
+        });
     new_graph.source_embeddings.extend(
         graph2
             .source_embeddings

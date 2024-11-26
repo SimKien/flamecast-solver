@@ -2,7 +2,7 @@ use std::{collections::HashMap, vec};
 
 use clarabel::algebra::CscMatrix;
 
-use crate::types::{DirectedGraph, Vertex};
+use crate::{DirectedEdge, Vertex};
 
 pub fn calculate_p_matrix(
     number_of_regarded_vertices: usize,
@@ -22,12 +22,12 @@ pub fn calculate_p_matrix(
 
 //TODO: Optimize this according to the formula on tablet
 pub fn calculate_a_matrix(
-    graph: &DirectedGraph,
+    edges: &Vec<DirectedEdge>,
     regarded_vertices: &Vec<Vertex>,
 ) -> CscMatrix<f64> {
     // calculate A-Matrix for clarabel
     let number_of_regarded_vertices = regarded_vertices.len();
-    let number_of_edges = graph.edges.len();
+    let number_of_edges = edges.len();
 
     // create map which maps vertices to their corresponding index
     let mut vertices_indexes = HashMap::new();
@@ -40,7 +40,7 @@ pub fn calculate_a_matrix(
 
     // save for each vertex-index the connexted edge-index and whether its the source or the drain
     let mut connections = vec![Vec::new(); number_of_regarded_vertices];
-    for (index, edge) in graph.edges.iter().enumerate() {
+    for (index, edge) in edges.iter().enumerate() {
         let source_index = vertices_indexes.get(&edge.0);
         let drain_index = vertices_indexes.get(&edge.1);
 

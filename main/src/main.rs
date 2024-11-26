@@ -15,8 +15,6 @@ pub const DEFAULT_ALPHA: f64 = 0.9;
 pub const SEARCH_DEPTH: SearchDepth = SearchDepth::Middle;
 
 fn main() {
-    //TODO: implement show_flows
-
     let args = env::args().collect::<Vec<String>>();
 
     let test_graph = convert_args_to_graph(args);

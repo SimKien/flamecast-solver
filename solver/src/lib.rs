@@ -13,24 +13,24 @@ pub fn hello_world() {
     println!("Hello, world!");
 }
 
-pub fn generate_random_graph(num_nodes: usize, num_layers: usize) -> DirectedGraph {
+pub fn generate_random_graph(num_nodes: usize, num_layers: usize) -> LayeredGraph {
     return generate_random_directed_graph(num_nodes, num_layers);
 }
 
-pub fn get_sources(graph: &DirectedGraph) -> Vec<Vertex> {
+pub fn get_sources(graph: &LayeredGraph) -> Vec<Vertex> {
     return graph.get_sources();
 }
 
-pub fn get_drains(graph: &DirectedGraph) -> Vec<Vertex> {
+pub fn get_drains(graph: &LayeredGraph) -> Vec<Vertex> {
     return graph.get_drains();
 }
 
-pub fn get_layers(graph: &DirectedGraph) -> Vec<Vec<Vertex>> {
-    return graph.get_layers();
+pub fn get_layers(graph: &LayeredGraph) -> Vec<Vec<Vertex>> {
+    return graph.get_vertex_layers();
 }
 
 pub fn embed_graph(
-    graph: DirectedGraph,
+    graph: LayeredGraph,
     alpha: f64,
     sources_embeddings: &VertexEmbeddings,
     drains_embeddings: &VertexEmbeddings,
