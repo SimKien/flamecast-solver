@@ -1,4 +1,5 @@
 mod test_graphs;
+mod tests;
 
 use std::env;
 
@@ -13,6 +14,7 @@ pub const DEFAULT_NUM_NODES: usize = 200;
 pub const DEFAULT_NUM_LAYERS: usize = 5;
 pub const DEFAULT_ALPHA: f64 = 0.9;
 pub const SEARCH_DEPTH: SearchDepth = SearchDepth::Middle;
+pub const TIME_LIMIT: f64 = f64::INFINITY;
 
 fn main() {
     let args = env::args().collect::<Vec<String>>();
@@ -32,7 +34,7 @@ fn main() {
         test_graph.alpha,
         &test_graph.source_embeddings,
         &test_graph.drain_embeddings,
-        Options::new(true, SearchDepth::Middle, f64::INFINITY, true, false),
+        Options::new(true, SEARCH_DEPTH, TIME_LIMIT, true, false),
     );
 
     plot_graph(&embedded_graph, true, true);
