@@ -80,6 +80,36 @@ impl LayeredGraph {
         return layers;
     }
 
+    pub fn get_neighbours(&self, vertex: &Vertex) -> Vec<Vertex> {
+        // get the neighbours of a vertex
+        let mut neighbours = Vec::new();
+
+        let vertex_layer = self
+            .layers
+            .iter()
+            .position(|layer| layer.vertices.contains(vertex))
+            .unwrap();
+
+        self.layers[vertex_layer - 1]
+            .edges
+            .iter()
+            .for_each(|(source, target)| {
+                if target == vertex {
+                    neighbours.push(*source);
+                }
+            });
+        self.layers[vertex_layer]
+            .edges
+            .iter()
+            .for_each(|(source, target)| {
+                if source == vertex {
+                    neighbours.push(*target);
+                }
+            });
+
+        return neighbours;
+    }
+
     pub fn calculate_edge_flows(&self) -> HashMap<DirectedEdge, usize> {
         // calculate the flows of the edges of the graph
         let mut edge_flows = HashMap::new();

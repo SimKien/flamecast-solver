@@ -67,8 +67,8 @@ pub fn embed_directed_graph(
 
     // save the solution in the VertexEmbeddings format
     let mut result = VertexEmbeddings::new();
-    result.extend(&sources_embeddings.content);
-    result.extend(&drains_embeddings.content);
+    result.extend(sources_embeddings.iter());
+    result.extend(drains_embeddings.iter());
     for (index, vertex) in regarded_vertices.iter().enumerate() {
         let x = solution[index];
         let y = solution[index + number_of_regarded_vertices];

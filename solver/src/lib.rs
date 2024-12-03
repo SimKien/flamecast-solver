@@ -1,12 +1,15 @@
 mod graph_embedding;
 mod graph_generation;
 mod plotting;
+mod tests;
 mod types;
 
 use graph_embedding::embed_directed_graph;
 pub use graph_embedding::{Options, SearchDepth};
 use graph_generation::generate_random_directed_graph;
 use plotting::plot_embedded_graph;
+pub use tests::TestGraph;
+use tests::{combine_test_graphs, TESTGRAPHS};
 pub use types::*;
 
 pub fn hello_world() {
@@ -52,4 +55,16 @@ pub fn embed_graph(
 
 pub fn plot_graph(embedded_graph: &GraphEmbedding, show_flow: bool, show_layers: bool) {
     plot_embedded_graph(embedded_graph, show_flow, show_layers);
+}
+
+pub fn get_test_graph(index: usize) -> TestGraph {
+    return TESTGRAPHS[index].clone();
+}
+
+pub fn get_test_graphs_len() -> usize {
+    return TESTGRAPHS.len();
+}
+
+pub fn combine_testing_graphs(graph1: &mut TestGraph, graph2: &TestGraph) -> Option<TestGraph> {
+    return combine_test_graphs(graph1, graph2);
 }

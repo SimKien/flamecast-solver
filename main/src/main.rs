@@ -1,14 +1,11 @@
-mod test_graphs;
-mod tests;
-
 use std::env;
 
 use rand::Rng;
 use solver::{
-    embed_graph, generate_random_graph, get_drains, get_sources, plot_graph, Options, SearchDepth,
+    combine_testing_graphs, embed_graph, generate_random_graph, get_drains, get_sources,
+    get_test_graph, get_test_graphs_len, plot_graph, Options, SearchDepth, TestGraph,
     VertexEmbeddings,
 };
-use test_graphs::{combine_test_graphs, TestGraph, TESTGRAPHS};
 
 pub const DEFAULT_NUM_NODES: usize = 200;
 pub const DEFAULT_NUM_LAYERS: usize = 5;
@@ -83,15 +80,15 @@ fn convert_args_to_graph(args: Vec<String>) -> Option<TestGraph> {
                 .collect::<Vec<usize>>();
             if test_graph_indexes
                 .iter()
-                .any(|index| *index >= TESTGRAPHS.len())
+                .any(|index| *index >= get_test_graphs_len())
             {
                 return None;
             }
 
-            let mut graph = (*TESTGRAPHS[test_graph_indexes[0]]).clone();
+            let mut graph = get_test_graph(test_graph_indexes[0]);
             for index in test_graph_indexes.iter().skip(1) {
-                let graph2 = &(*TESTGRAPHS[*index]);
-                let new_graph = combine_test_graphs(&mut graph, graph2);
+                let graph2 = get_test_graph(*index);
+                let new_graph = combine_testing_graphs(&mut graph, &graph2);
                 if new_graph.is_none() {
                     return None;
                 }
