@@ -31,6 +31,58 @@ impl LayeredGraph {
         }
     }
 
+    pub fn new_vertex(&mut self) -> Vertex {
+        // create a new vertex
+        if !self.removed_vertices.is_empty() {
+            let vertex = self.removed_vertices.pop().unwrap();
+            return vertex;
+        }
+
+        let vertex = self.next_vertex;
+        self.next_vertex += 1;
+        return vertex;
+    }
+
+    pub fn add_vertex_to_layer(&mut self, vertex: Vertex, layer_index: usize) {
+        // add a vertex to a layer
+        self.layers[layer_index].vertices.push(vertex);
+    }
+
+    pub fn remove_vertex_from_layer(&mut self, vertex: Vertex, layer_index: usize) {
+        // remove a vertex from a layer
+        let vertex_position = self.layers[layer_index]
+            .vertices
+            .iter()
+            .position(|v| *v == vertex)
+            .unwrap();
+        self.layers[layer_index].vertices.remove(vertex_position);
+    }
+
+    pub fn add_edge_to_layer(&mut self, edge: DirectedEdge, layer_index: usize) {
+        // add an edge to a layer
+        self.layers[layer_index].edges.push(edge);
+    }
+
+    pub fn remove_edge_from_layer(&mut self, edge: DirectedEdge, layer_index: usize) {
+        // remove an edge from a layer
+        let edge_position = self.layers[layer_index]
+            .edges
+            .iter()
+            .position(|e| *e == edge)
+            .unwrap();
+        self.layers[layer_index].edges.remove(edge_position);
+    }
+
+    pub fn get_parent(&self, layer_index: usize, vertex: Vertex) -> Vertex {
+        // get the parent of a vertex
+        self.layers[layer_index]
+            .edges
+            .iter()
+            .find(|(x, _)| vertex == *x)
+            .unwrap()
+            .1
+    }
+
     pub fn cumulate_vertices(&self) -> Vec<Vertex> {
         // cumulate the vertices of the graph
         let mut vertices = Vec::new();

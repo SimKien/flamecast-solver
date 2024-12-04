@@ -1,5 +1,6 @@
 mod graph_embedding;
 mod graph_generation;
+mod neighborhood;
 mod plotting;
 mod tests;
 mod types;
@@ -53,8 +54,8 @@ pub fn embed_graph(
     return GraphEmbedding::new(graph, graph_embedding);
 }
 
-pub fn plot_graph(embedded_graph: &GraphEmbedding, show_flow: bool, show_layers: bool) {
-    plot_embedded_graph(embedded_graph, show_flow, show_layers);
+pub fn plot_graph(embedded_graph: &GraphEmbedding, show_layers: bool) {
+    plot_embedded_graph(embedded_graph, show_layers);
 }
 
 pub fn get_test_graph(index: usize) -> TestGraph {

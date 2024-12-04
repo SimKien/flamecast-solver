@@ -15,7 +15,7 @@ pub const ROOT_HEIGHT: u32 = 1000;
 
 pub const NODE_RADIUS: i32 = 6;
 
-pub fn plot_embedded_graph(embedded_graph: &GraphEmbedding, show_flow: bool, show_layers: bool) {
+pub fn plot_embedded_graph(embedded_graph: &GraphEmbedding, show_layers: bool) {
     let root =
         BitMapBackend::new("./plots/output.png", (ROOT_WIDTH, ROOT_HEIGHT)).into_drawing_area();
 
