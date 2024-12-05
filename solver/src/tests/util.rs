@@ -1,5 +1,7 @@
 use crate::VertexEmbeddings;
 
+use super::EPSILON;
+
 pub fn embeddings_equal(
     calculated_embeddings: &VertexEmbeddings,
     expected_embeddings: &VertexEmbeddings,
@@ -23,5 +25,5 @@ pub fn embeddings_equal(
 }
 
 pub fn float_equal(a: f64, b: f64) -> bool {
-    (a - b).abs() < 0.0001
+    (a - b).abs() < EPSILON
 }

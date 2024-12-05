@@ -54,8 +54,8 @@ pub fn embed_graph(
     return GraphEmbedding::new(graph, graph_embedding);
 }
 
-pub fn plot_graph(embedded_graph: &GraphEmbedding, show_layers: bool) {
-    plot_embedded_graph(embedded_graph, show_layers);
+pub fn plot_graph(file_path: &str, embedded_graph: &GraphEmbedding, show_layers: bool) {
+    plot_embedded_graph(file_path, embedded_graph, show_layers);
 }
 
 pub fn get_test_graph(index: usize) -> TestGraph {

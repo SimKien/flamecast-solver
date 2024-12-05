@@ -31,6 +31,16 @@ impl LayeredGraph {
         }
     }
 
+    pub fn to_string(&self) -> String {
+        // convert the graph to a string
+        let mut graph_string = String::new();
+        for layer in &self.layers {
+            graph_string = format!("{}\n{:?}", graph_string, layer.vertices);
+            graph_string = format!("{}\n{:?}", graph_string, layer.edges);
+        }
+        return graph_string;
+    }
+
     pub fn new_vertex(&mut self) -> Vertex {
         // create a new vertex
         if !self.removed_vertices.is_empty() {

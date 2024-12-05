@@ -34,7 +34,7 @@ fn main() {
         Options::new(true, SEARCH_DEPTH, TIME_LIMIT, true, false),
     );
 
-    plot_graph(&embedded_graph, true);
+    plot_graph("./plots/output.png", &embedded_graph, true);
 }
 
 fn convert_args_to_graph(args: Vec<String>) -> Option<TestGraph> {
