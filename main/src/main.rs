@@ -26,6 +26,8 @@ fn main() {
     }
     let test_graph = test_graph.unwrap();
 
+    println!("{:?}", test_graph.graph);
+
     let embedded_graph = embed_graph(
         test_graph.graph,
         test_graph.alpha,
@@ -33,6 +35,8 @@ fn main() {
         &test_graph.drain_embeddings,
         Options::new(true, SEARCH_DEPTH, TIME_LIMIT, true, false),
     );
+
+    println!("{:?}", embedded_graph.vertices_embeddings);
 
     plot_graph("./plots/output.png", &embedded_graph, true);
 }

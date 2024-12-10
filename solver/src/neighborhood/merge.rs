@@ -1,20 +1,17 @@
 use crate::{LayeredGraph, Vertex};
-/*
+
 impl LayeredGraph {
-    pub fn merge(&mut self, layer_index: usize, remaining_node: Vertex, node_to_remove: Vertex) {
-        self.layers[layer_index - 1]
-            .edges
-            .iter_mut()
-            .for_each(|(_, v)| {
-                if *v == node_to_remove {
-                    *v = remaining_node;
-                }
+    // Merge only possible if the two nodes have the same parent
+    pub fn merge(&mut self, layer_index: usize, parent1: Vertex, parent2: Vertex) {
+        let grand_parent = self.get_parent(layer_index + 1, parent1);
+
+        self.get_children(layer_index, parent2)
+            .iter()
+            .for_each(|&child| {
+                self.recable(layer_index, child, parent1);
             });
-        self.remove_edge_from_layer(
-            (node_to_remove, self.get_parent(layer_index, node_to_remove)),
-            layer_index,
-        );
-        self.remove_vertex_from_layer(node_to_remove, layer_index);
+
+        self.remove_edge_from_layer((parent2, grand_parent), layer_index + 1);
+        self.remove_vertex_from_layer(parent2, layer_index + 1);
     }
 }
-*/

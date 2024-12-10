@@ -426,6 +426,7 @@ pub const TESTGRAPHS: [LazyLock<TestGraph>; 10] = [
     GRAPH_1, GRAPH_2, GRAPH_3, GRAPH_4, GRAPH_5, GRAPH_6, GRAPH_7, GRAPH_8, GRAPH_9, GRAPH_10,
 ];
 
+// combine two graphs into one, alpha of graph1 is used and alpha of graph2 is ignored
 pub fn combine_test_graphs(graph1: &mut TestGraph, graph2: &TestGraph) -> Option<TestGraph> {
     // Check if the graphs have the same number of layers
     if graph1.graph.get_vertex_layers().len() != graph2.graph.get_vertex_layers().len() {

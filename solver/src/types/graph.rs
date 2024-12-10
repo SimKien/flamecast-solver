@@ -87,7 +87,7 @@ impl LayeredGraph {
         // get the children of a vertex
         let mut children = Vec::new();
 
-        for edge in self.layers[layer_index - 1].edges.values() {
+        for edge in self.layers[layer_index].edges.values() {
             if edge.1 == vertex {
                 children.push(edge.0);
             }
@@ -165,7 +165,7 @@ impl LayeredGraph {
             .position(|layer| layer.vertices.contains(&vertex))
             .unwrap();
 
-        neighbours.append(&mut self.get_children(vertex_layer, vertex));
+        neighbours.append(&mut self.get_children(vertex_layer - 1, vertex));
         neighbours.push(self.get_parent(vertex_layer, vertex));
 
         return neighbours;
