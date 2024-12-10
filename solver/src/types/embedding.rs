@@ -25,11 +25,11 @@ impl GraphEmbedding {
         let mut cost = 0.0;
 
         for layer in &self.base_graph.layers {
-            for (source, target) in &layer.edges {
+            for (source, target) in layer.edges.values() {
                 let (x1, y1) = self.vertices_embeddings.get(source).unwrap();
                 let (x2, y2) = self.vertices_embeddings.get(target).unwrap();
 
-                let edge_len = (x1 - x2).hypot(y1 - y2);
+                let edge_len = ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt();
                 let flow = *edge_flows.get(&(*source, *target)).unwrap();
 
                 cost += edge_len * (flow as f64).powf(alpha);

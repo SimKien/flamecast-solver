@@ -6,11 +6,11 @@ pub type DirectedEdge = (Vertex, Vertex);
 #[derive(Debug, Clone)]
 pub struct Layer {
     pub vertices: Vec<Vertex>,
-    pub edges: Vec<DirectedEdge>,
+    pub edges: HashMap<Vertex, DirectedEdge>, // Each Vertex only has one edge
 }
 
 impl Layer {
-    pub fn new(vertices: Vec<Vertex>, edges: Vec<DirectedEdge>) -> Self {
+    pub fn new(vertices: Vec<Vertex>, edges: HashMap<Vertex, DirectedEdge>) -> Self {
         Self { vertices, edges }
     }
 }
@@ -70,27 +70,30 @@ impl LayeredGraph {
 
     pub fn add_edge_to_layer(&mut self, edge: DirectedEdge, layer_index: usize) {
         // add an edge to a layer
-        self.layers[layer_index].edges.push(edge);
+        self.layers[layer_index].edges.insert(edge.0, edge);
     }
 
     pub fn remove_edge_from_layer(&mut self, edge: DirectedEdge, layer_index: usize) {
         // remove an edge from a layer
-        let edge_position = self.layers[layer_index]
-            .edges
-            .iter()
-            .position(|e| *e == edge)
-            .unwrap();
-        self.layers[layer_index].edges.remove(edge_position);
+        self.layers[layer_index].edges.remove(&edge.0);
     }
 
     pub fn get_parent(&self, layer_index: usize, vertex: Vertex) -> Vertex {
         // get the parent of a vertex
-        self.layers[layer_index]
-            .edges
-            .iter()
-            .find(|(x, _)| vertex == *x)
-            .unwrap()
-            .1
+        self.layers[layer_index].edges.get(&vertex).unwrap().1
+    }
+
+    pub fn get_children(&self, layer_index: usize, vertex: Vertex) -> Vec<Vertex> {
+        // get the children of a vertex
+        let mut children = Vec::new();
+
+        for edge in self.layers[layer_index - 1].edges.values() {
+            if edge.1 == vertex {
+                children.push(edge.0);
+            }
+        }
+
+        return children;
     }
 
     pub fn cumulate_vertices(&self) -> Vec<Vertex> {
@@ -109,13 +112,22 @@ impl LayeredGraph {
         let mut edges = Vec::new();
 
         for layer in &self.layers {
-            edges.extend(layer.edges.clone());
+            if layer.edges.is_empty() {
+                break;
+            }
+            edges.extend(
+                layer
+                    .vertices
+                    .iter()
+                    .map(|vertex| layer.edges.get(vertex).unwrap()),
+            );
         }
 
         return edges;
     }
 
     pub fn get_sources(&self) -> Vec<Vertex> {
+        // get the sources of the graph
         self.layers[0]
             .vertices
             .iter()
@@ -124,6 +136,7 @@ impl LayeredGraph {
     }
 
     pub fn get_drains(&self) -> Vec<Vertex> {
+        // get the drains of the graph
         self.layers[self.layers.len() - 1]
             .vertices
             .iter()
@@ -142,32 +155,18 @@ impl LayeredGraph {
         return layers;
     }
 
-    pub fn get_neighbours(&self, vertex: &Vertex) -> Vec<Vertex> {
+    pub fn get_neighbours(&self, vertex: Vertex) -> Vec<Vertex> {
         // get the neighbours of a vertex
         let mut neighbours = Vec::new();
 
         let vertex_layer = self
             .layers
             .iter()
-            .position(|layer| layer.vertices.contains(vertex))
+            .position(|layer| layer.vertices.contains(&vertex))
             .unwrap();
 
-        self.layers[vertex_layer - 1]
-            .edges
-            .iter()
-            .for_each(|(source, target)| {
-                if target == vertex {
-                    neighbours.push(*source);
-                }
-            });
-        self.layers[vertex_layer]
-            .edges
-            .iter()
-            .for_each(|(source, target)| {
-                if source == vertex {
-                    neighbours.push(*target);
-                }
-            });
+        neighbours.append(&mut self.get_children(vertex_layer, vertex));
+        neighbours.push(self.get_parent(vertex_layer, vertex));
 
         return neighbours;
     }
@@ -182,7 +181,7 @@ impl LayeredGraph {
         });
 
         for layer in &self.layers {
-            layer.edges.iter().for_each(|(source, target)| {
+            layer.edges.values().for_each(|(source, target)| {
                 let flow = *vertex_flows.get(source).unwrap();
                 edge_flows.insert((*source, *target), flow);
                 *vertex_flows.entry(*target).or_insert(0) += flow;

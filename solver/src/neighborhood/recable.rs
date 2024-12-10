@@ -1,7 +1,7 @@
-use crate::LayeredGraph;
-
+use crate::{LayeredGraph, Vertex};
+/*
 impl LayeredGraph {
-    pub fn recable(&mut self, layer_index: usize, node: usize, target_node: usize) {
+    pub fn recable(&mut self, layer_index: usize, node: Vertex, target_node: Vertex) {
         self.layers[layer_index]
             .edges
             .iter_mut()
@@ -10,3 +10,4 @@ impl LayeredGraph {
             .1 = target_node;
     }
 }
+*/

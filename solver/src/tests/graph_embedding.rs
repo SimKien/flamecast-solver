@@ -101,7 +101,7 @@ fn compare_with_generalized_weiszfeld(
         }
 
         let calculated_embedding = calculated_embeddings.get(node).unwrap();
-        let surrounding_nodes = graph.get_neighbours(node);
+        let surrounding_nodes = graph.get_neighbours(*node);
         let surrounding_points = surrounding_nodes
             .iter()
             .map(|node| calculated_embeddings.get(node).unwrap().clone())

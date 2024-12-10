@@ -27,7 +27,7 @@ pub fn plot_embedded_graph(file_path: &str, embedded_graph: &GraphEmbedding, sho
     // Draw vertices and edges for each layer
     for layer in embedded_graph.base_graph.layers.iter() {
         // Draw edges first because they should be behind the vertices
-        for edge in layer.edges.iter() {
+        for edge in layer.edges.values() {
             let source = embedded_graph.vertices_embeddings.get(&edge.0).unwrap();
             let target = embedded_graph.vertices_embeddings.get(&edge.1).unwrap();
 

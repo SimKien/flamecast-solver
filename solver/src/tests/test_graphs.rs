@@ -1,5 +1,7 @@
 use std::sync::LazyLock;
 
+use std::collections::HashMap;
+
 use crate::{Layer, LayeredGraph, VertexEmbeddings};
 
 #[derive(Debug, Clone)]
@@ -15,15 +17,17 @@ const GRAPH_1: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1],
-                edges: vec![(0, 2), (1, 2)],
+                edges: HashMap::from([(0, (0, 2)), (1, (1, 2))])
+                    .into_iter()
+                    .collect(),
             },
             Layer {
                 vertices: vec![2],
-                edges: vec![(2, 3)],
+                edges: HashMap::from([(2, (2, 3))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![3],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 4,
@@ -48,15 +52,17 @@ const GRAPH_2: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1, 2],
-                edges: vec![(0, 3), (1, 3), (2, 3)],
+                edges: HashMap::from([(0, (0, 3)), (1, (1, 3)), (2, (2, 3))])
+                    .into_iter()
+                    .collect(),
             },
             Layer {
                 vertices: vec![3],
-                edges: vec![(3, 4)],
+                edges: HashMap::from([(3, (3, 4))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![4],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 5,
@@ -82,15 +88,17 @@ const GRAPH_3: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1, 2, 3],
-                edges: vec![(0, 4), (1, 4), (2, 4), (3, 4)],
+                edges: HashMap::from([(0, (0, 4)), (1, (1, 4)), (2, (2, 4)), (3, (3, 4))])
+                    .into_iter()
+                    .collect(),
             },
             Layer {
                 vertices: vec![4],
-                edges: vec![(4, 5)],
+                edges: HashMap::from([(4, (4, 5))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![5],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 6,
@@ -117,19 +125,21 @@ const GRAPH_4: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1],
-                edges: vec![(0, 2), (1, 2)],
+                edges: HashMap::from([(0, (0, 2)), (1, (1, 2))])
+                    .into_iter()
+                    .collect(),
             },
             Layer {
                 vertices: vec![2],
-                edges: vec![(2, 3)],
+                edges: HashMap::from([(2, (2, 3))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![3],
-                edges: vec![(3, 4)],
+                edges: HashMap::from([(3, (3, 4))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![4],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 5,
@@ -154,15 +164,17 @@ const GRAPH_5: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1, 2, 3],
-                edges: vec![(0, 4), (1, 4), (2, 4), (3, 4)],
+                edges: HashMap::from([(0, (0, 4)), (1, (1, 4)), (2, (2, 4)), (3, (3, 4))])
+                    .into_iter()
+                    .collect(),
             },
             Layer {
                 vertices: vec![4],
-                edges: vec![(4, 5)],
+                edges: HashMap::from([(4, (4, 5))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![5],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 6,
@@ -189,15 +201,23 @@ const GRAPH_6: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1, 2, 3, 4],
-                edges: vec![(0, 5), (1, 5), (2, 5), (3, 5), (4, 5)],
+                edges: HashMap::from([
+                    (0, (0, 5)),
+                    (1, (1, 5)),
+                    (2, (2, 5)),
+                    (3, (3, 5)),
+                    (4, (4, 5)),
+                ])
+                .into_iter()
+                .collect(),
             },
             Layer {
                 vertices: vec![5],
-                edges: vec![(5, 6)],
+                edges: HashMap::from([(5, (5, 6))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![6],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 7,
@@ -225,15 +245,24 @@ const GRAPH_7: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1, 2, 3, 4, 5],
-                edges: vec![(0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6)],
+                edges: HashMap::from([
+                    (0, (0, 6)),
+                    (1, (1, 6)),
+                    (2, (2, 6)),
+                    (3, (3, 6)),
+                    (4, (4, 6)),
+                    (5, (5, 6)),
+                ])
+                .into_iter()
+                .collect(),
             },
             Layer {
                 vertices: vec![6],
-                edges: vec![(6, 7)],
+                edges: HashMap::from([(6, (6, 7))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![7],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 8,
@@ -262,19 +291,29 @@ const GRAPH_8: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1, 2, 6, 8],
-                edges: vec![(0, 3), (1, 3), (2, 3), (6, 7), (8, 9)],
+                edges: HashMap::from([
+                    (0, (0, 3)),
+                    (1, (1, 3)),
+                    (2, (2, 3)),
+                    (6, (6, 7)),
+                    (8, (8, 9)),
+                ])
+                .into_iter()
+                .collect(),
             },
             Layer {
                 vertices: vec![3, 7, 9],
-                edges: vec![(3, 4), (7, 4), (9, 4)],
+                edges: HashMap::from([(3, (3, 4)), (7, (7, 4)), (9, (9, 4))])
+                    .into_iter()
+                    .collect(),
             },
             Layer {
                 vertices: vec![4],
-                edges: vec![(4, 5)],
+                edges: HashMap::from([(4, (4, 5))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![5],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 10,
@@ -302,15 +341,17 @@ const GRAPH_9: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1, 2],
-                edges: vec![(0, 3), (1, 3), (2, 3)],
+                edges: HashMap::from([(0, (0, 3)), (1, (1, 3)), (2, (2, 3))])
+                    .into_iter()
+                    .collect(),
             },
             Layer {
                 vertices: vec![3],
-                edges: vec![(3, 4)],
+                edges: HashMap::from([(3, (3, 4))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![4],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 5,
@@ -336,19 +377,29 @@ const GRAPH_10: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
         layers: vec![
             Layer {
                 vertices: vec![0, 1, 2, 6, 8],
-                edges: vec![(0, 3), (1, 3), (2, 3), (6, 7), (8, 9)],
+                edges: HashMap::from([
+                    (0, (0, 3)),
+                    (1, (1, 3)),
+                    (2, (2, 3)),
+                    (6, (6, 7)),
+                    (8, (8, 9)),
+                ])
+                .into_iter()
+                .collect(),
             },
             Layer {
                 vertices: vec![3, 7, 9],
-                edges: vec![(3, 4), (7, 4), (9, 4)],
+                edges: HashMap::from([(3, (3, 4)), (7, (7, 4)), (9, (9, 4))])
+                    .into_iter()
+                    .collect(),
             },
             Layer {
                 vertices: vec![4],
-                edges: vec![(4, 5)],
+                edges: HashMap::from([(4, (4, 5))]).into_iter().collect(),
             },
             Layer {
                 vertices: vec![5],
-                edges: vec![],
+                edges: HashMap::new(),
             },
         ],
         next_vertex: 10,
@@ -401,29 +452,35 @@ pub fn combine_test_graphs(graph1: &mut TestGraph, graph2: &TestGraph) -> Option
                     .cloned()
                     .map(|v| v + max_vertex + 1),
             );
-            layer.edges.extend(
-                graph2
-                    .graph
-                    .layers
-                    .get(index)
-                    .unwrap()
-                    .edges
-                    .iter()
-                    .map(|(u, v)| (*u + max_vertex + 1, *v + max_vertex + 1)),
-            );
+            graph2
+                .graph
+                .layers
+                .get(index)
+                .unwrap()
+                .edges
+                .iter()
+                .for_each(|(vertex, (u, v))| {
+                    layer.edges.insert(
+                        *vertex + max_vertex + 1,
+                        (*u + max_vertex + 1, *v + max_vertex + 1),
+                    );
+                });
         });
-    new_graph
-        .source_embeddings
-        .extend(graph2.source_embeddings.iter());
-    new_graph
-        .drain_embeddings
-        .extend(graph2.drain_embeddings.iter());
+    new_graph.source_embeddings.extend(
+        graph2
+            .source_embeddings
+            .iter()
+            .map(|(v, e)| (*v + max_vertex + 1, *e)),
+    );
+    new_graph.drain_embeddings.extend(
+        graph2
+            .drain_embeddings
+            .iter()
+            .map(|(v, e)| (*v + max_vertex + 1, *e)),
+    );
 
     return Some(new_graph);
 }
-
-#[cfg(test)]
-use std::collections::HashMap;
 
 #[cfg(test)]
 pub type OptimalEmbeddings = VertexEmbeddings;

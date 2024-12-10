@@ -1,7 +1,7 @@
-use crate::LayeredGraph;
-
+use crate::{LayeredGraph, Vertex};
+/*
 impl LayeredGraph {
-    pub fn merge(&mut self, layer_index: usize, remaining_node: usize, node_to_remove: usize) {
+    pub fn merge(&mut self, layer_index: usize, remaining_node: Vertex, node_to_remove: Vertex) {
         self.layers[layer_index - 1]
             .edges
             .iter_mut()
@@ -17,3 +17,4 @@ impl LayeredGraph {
         self.remove_vertex_from_layer(node_to_remove, layer_index);
     }
 }
+*/

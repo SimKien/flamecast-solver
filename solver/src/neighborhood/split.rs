@@ -1,7 +1,7 @@
-use crate::LayeredGraph;
-
+use crate::{LayeredGraph, Vertex};
+/*
 impl LayeredGraph {
-    pub fn split(&mut self, layer_index: usize, connections_new_node: &mut Vec<usize>) {
+    pub fn split(&mut self, layer_index: usize, connections_new_node: &mut Vec<Vertex>) {
         let old_vertex = self.get_parent(layer_index, connections_new_node[0]);
         let parent_node = self.get_parent(layer_index, old_vertex);
         let new_vertex = self.new_vertex();
@@ -18,3 +18,4 @@ impl LayeredGraph {
             });
     }
 }
+*/
