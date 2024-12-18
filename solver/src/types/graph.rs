@@ -1,191 +1,411 @@
-use std::collections::HashMap;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VertexID {
+    pub layer: usize,
+    pub index: usize,
+}
 
-pub type Vertex = usize;
-pub type DirectedEdge = (Vertex, Vertex);
+impl VertexID {
+    pub fn new(layer: usize, index: usize) -> Self {
+        Self { layer, index }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Vertex {
+    pub vertex_id: VertexID,
+    pub parent_index: Option<usize>,
+    pub children_indices: Option<Vec<usize>>,
+}
+
+impl Vertex {
+    pub fn new(
+        vertex_id: VertexID,
+        parent_index: Option<usize>,
+        children_indices: Option<Vec<usize>>,
+    ) -> Self {
+        Self {
+            vertex_id,
+            parent_index,
+            children_indices,
+        }
+    }
+
+    pub fn new_with_id(layer_index: usize, index: usize) -> Self {
+        Self {
+            vertex_id: VertexID::new(layer_index, index),
+            parent_index: None,
+            children_indices: None,
+        }
+    }
+
+    pub fn new_empty() -> Self {
+        Self {
+            vertex_id: VertexID::new(0, 0),
+            parent_index: None,
+            children_indices: None,
+        }
+    }
+
+    pub fn set_index(&mut self, index: usize) {
+        self.vertex_id.index = index;
+    }
+
+    pub fn set_layer(&mut self, layer: usize) {
+        self.vertex_id.layer = layer;
+    }
+
+    pub fn set_parent(&mut self, parent_index: usize) {
+        self.parent_index = Some(parent_index);
+    }
+
+    pub fn remove_parent(&mut self) {
+        self.parent_index = None;
+    }
+
+    pub fn add_child(&mut self, child_index: usize) {
+        self.children_indices
+            .get_or_insert_with(|| Vec::new())
+            .push(child_index);
+    }
+
+    pub fn remove_child(&mut self, child_index: usize) {
+        if let Some(children_indices) = &mut self.children_indices {
+            children_indices.swap_remove(
+                children_indices
+                    .iter()
+                    .position(|x| *x == child_index)
+                    .unwrap(),
+            );
+        }
+    }
+
+    pub fn change_child(&mut self, old_index: usize, new_index: usize) {
+        if let Some(children_indices) = &mut self.children_indices {
+            let index = children_indices
+                .iter()
+                .position(|x| *x == old_index)
+                .unwrap();
+            children_indices[index] = new_index;
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Layer {
+    pub index: usize,
     pub vertices: Vec<Vertex>,
-    pub edges: HashMap<Vertex, DirectedEdge>, // Each Vertex only has one edge
 }
 
 impl Layer {
-    pub fn new(vertices: Vec<Vertex>, edges: HashMap<Vertex, DirectedEdge>) -> Self {
-        Self { vertices, edges }
+    pub fn new(index: usize, size: usize) -> Self {
+        let mut vertices = Vec::with_capacity(size);
+
+        (0..size).for_each(|vertex_index| {
+            vertices.push(Vertex::new_with_id(index, vertex_index));
+        });
+        Self { index, vertices }
+    }
+
+    pub fn from(index: usize, vertices: Vec<Vertex>) -> Self {
+        let mut vertices = vertices;
+
+        vertices.iter_mut().for_each(|vertex| {
+            vertex.set_layer(index);
+        });
+
+        Self { index, vertices }
+    }
+
+    pub fn new_with_index(index: usize) -> Self {
+        Self {
+            index,
+            vertices: Vec::new(),
+        }
+    }
+
+    pub fn new_empty() -> Self {
+        Self {
+            index: 0,
+            vertices: Vec::new(),
+        }
+    }
+
+    pub fn add_vertex(&mut self, vertex: Vertex) -> usize {
+        // add a vertex to the layer
+        let mut vertex = vertex;
+        let index = self.vertices.len();
+        vertex.set_index(index);
+        vertex.set_layer(self.index);
+        self.vertices.push(vertex);
+        return index;
+    }
+
+    pub fn remove_vertex(&mut self, vertex: &VertexID) -> usize {
+        // remove a vertex from the layer and returns the the old index of the vertex which was swapped with the removed vertex
+        self.vertices.swap_remove(vertex.index);
+
+        let swapped_vertex = &mut self.vertices[vertex.index];
+
+        let old_index = swapped_vertex.vertex_id.index;
+
+        swapped_vertex.set_index(vertex.index);
+
+        return old_index;
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct LayeredGraph {
     pub layers: Vec<Layer>,
-    pub next_vertex: Vertex,
-    pub removed_vertices: Vec<Vertex>,
 }
 
 impl LayeredGraph {
-    pub fn new(layers: Vec<Layer>, next_vertex: Vertex, removed_vertices: Vec<Vertex>) -> Self {
-        Self {
-            layers,
-            next_vertex,
-            removed_vertices,
+    pub fn new(layers: Vec<Layer>) -> Self {
+        Self { layers }
+    }
+
+    pub fn new_empty() -> Self {
+        Self { layers: Vec::new() }
+    }
+
+    pub fn from_sources_drains(
+        sources: Vec<Vertex>,
+        drains: Vec<Vertex>,
+        num_layers: usize,
+    ) -> Self {
+        // create an almost empty graph with only sources and drains
+        let mut graph = LayeredGraph::new_empty();
+
+        graph.add_layer(Layer::from(0, sources));
+
+        for i in 1..num_layers - 1 {
+            graph.add_layer(Layer::new_with_index(i));
         }
+
+        graph.add_layer(Layer::from(num_layers - 1, drains));
+
+        return graph;
+    }
+
+    pub fn add_layer(&mut self, layer: Layer) {
+        // add a layer to the graph
+        let mut layer = layer;
+        layer.index = self.layers.len();
+
+        self.layers.push(layer);
     }
 
     pub fn to_string(&self) -> String {
         // convert the graph to a string
         let mut graph_string = String::new();
         for layer in &self.layers {
-            graph_string = format!("{}\n{:?}", graph_string, layer.vertices);
-            graph_string = format!("{}\n{:?}", graph_string, layer.edges);
+            graph_string = format!("{}\n{:?}", graph_string, layer);
         }
         return graph_string;
     }
 
-    pub fn new_vertex(&mut self) -> Vertex {
-        // create a new vertex
-        if !self.removed_vertices.is_empty() {
-            let vertex = self.removed_vertices.pop().unwrap();
-            return vertex;
-        }
-
-        let vertex = self.next_vertex;
-        self.next_vertex += 1;
-        return vertex;
-    }
-
-    pub fn add_vertex_to_layer(&mut self, vertex: Vertex, layer_index: usize) {
+    pub fn add_vertex_to_layer(&mut self, layer_index: usize, vertex: Vertex) {
         // add a vertex to a layer
-        self.layers[layer_index].vertices.push(vertex);
+        let (first, last) = self.layers.split_at_mut(layer_index);
+
+        let vertex_index = last[0].add_vertex(vertex);
+        let vertex = &last[0].vertices[vertex_index];
+
+        if let Some(children_indices) = &vertex.children_indices {
+            let children_layer = &mut first[layer_index - 1];
+            children_indices.iter().for_each(|child_index| {
+                let child = &mut children_layer.vertices[*child_index];
+                child.set_parent(vertex_index);
+            });
+        }
+
+        if let Some(parent_index) = vertex.parent_index {
+            let parent = &mut last[1].vertices[parent_index];
+            parent.add_child(vertex_index);
+        }
     }
 
-    pub fn remove_vertex_from_layer(&mut self, vertex: Vertex, layer_index: usize) {
-        // remove a vertex from a layer
-        let vertex_position = self.layers[layer_index]
-            .vertices
+    pub fn remove_vertex(&mut self, vertex: &VertexID) {
+        // remove a vertex from the graph
+        let old_index = self.layers[vertex.layer].remove_vertex(vertex);
+
+        let (first, last) = self.layers.split_at_mut(vertex.layer);
+
+        let swapped_vertex = &last[0].vertices[vertex.index];
+
+        if let Some(children_indices) = &swapped_vertex.children_indices {
+            let children_layer = &mut first[vertex.layer - 1];
+            children_indices.iter().for_each(|child_index| {
+                let child = &mut children_layer.vertices[*child_index];
+                child.set_parent(vertex.index);
+            });
+        }
+
+        if let Some(parent_index) = swapped_vertex.parent_index {
+            let parent = &mut last[1].vertices[parent_index];
+            parent.change_child(old_index, vertex.index);
+        }
+    }
+
+    pub fn add_edge(&mut self, source: &VertexID, target: &VertexID) {
+        // add an edge to the graph
+        let source_vertex = self.get_vertex_mut(source);
+        source_vertex.set_parent(target.index);
+        let target_vertex = self.get_vertex_mut(target);
+        target_vertex.add_child(source.index);
+    }
+
+    pub fn remove_edge(&mut self, source: &VertexID, target: &VertexID) {
+        // remove an edge from the graph
+        let source_vertex = self.get_vertex_mut(source);
+        source_vertex.remove_parent();
+        let target_vertex = self.get_vertex_mut(target);
+        target_vertex.remove_child(source.index);
+    }
+
+    pub fn get_number_of_vertices(&self) -> usize {
+        // get the number of vertices of the graph
+        return self
+            .layers
             .iter()
-            .position(|v| *v == vertex)
-            .unwrap();
-        self.layers[layer_index].vertices.remove(vertex_position);
+            .fold(0, |acc, layer| acc + layer.vertices.len());
     }
 
-    pub fn add_edge_to_layer(&mut self, edge: DirectedEdge, layer_index: usize) {
-        // add an edge to a layer
-        self.layers[layer_index].edges.insert(edge.0, edge);
+    pub fn get_number_of_edges(&self) -> usize {
+        // get the number of edges of the graph
+        let number_of_layers = self.layers.len();
+
+        return self.layers.iter().fold(0, |acc, layer| {
+            if layer.index == number_of_layers - 1 {
+                return acc;
+            }
+            return acc + layer.vertices.len();
+        });
     }
 
-    pub fn remove_edge_from_layer(&mut self, edge: DirectedEdge, layer_index: usize) {
-        // remove an edge from a layer
-        self.layers[layer_index].edges.remove(&edge.0);
+    pub fn get_vertex(&self, vertex: &VertexID) -> &Vertex {
+        // get a vertex from the graph
+        &self.layers[vertex.layer].vertices[vertex.index]
     }
 
-    pub fn get_parent(&self, layer_index: usize, vertex: Vertex) -> Vertex {
+    pub fn get_vertex_mut(&mut self, vertex: &VertexID) -> &mut Vertex {
+        // get a mutable vertex from the graph
+        &mut self.layers[vertex.layer].vertices[vertex.index]
+    }
+
+    pub fn get_parent(&self, vertex: &VertexID) -> Option<VertexID> {
         // get the parent of a vertex
-        self.layers[layer_index].edges.get(&vertex).unwrap().1
+        let regarded_vertex = self.layers[vertex.layer]
+            .vertices
+            .get(vertex.index)
+            .unwrap();
+
+        return match regarded_vertex.parent_index {
+            Some(parent_index) => Some(VertexID::new(vertex.layer + 1, parent_index)),
+            None => None,
+        };
     }
 
-    pub fn get_children(&self, layer_index: usize, vertex: Vertex) -> Vec<Vertex> {
+    pub fn get_children(&self, vertex: &VertexID) -> Option<Vec<VertexID>> {
         // get the children of a vertex
-        let mut children = Vec::new();
+        let regarded_vertex = self.layers[vertex.layer]
+            .vertices
+            .get(vertex.index)
+            .unwrap();
 
-        for edge in self.layers[layer_index].edges.values() {
-            if edge.1 == vertex {
-                children.push(edge.0);
-            }
-        }
-
-        return children;
-    }
-
-    pub fn cumulate_vertices(&self) -> Vec<Vertex> {
-        // cumulate the vertices of the graph
-        let mut vertices = Vec::new();
-
-        for layer in &self.layers {
-            vertices.extend(layer.vertices.clone());
-        }
-
-        return vertices;
-    }
-
-    pub fn cumulate_edges(&self) -> Vec<DirectedEdge> {
-        // cumulate the edges of the graph
-        let mut edges = Vec::new();
-
-        for layer in &self.layers {
-            if layer.edges.is_empty() {
-                break;
-            }
-            edges.extend(
-                layer
-                    .vertices
+        return match &regarded_vertex.children_indices {
+            Some(children_indices) => Some(
+                children_indices
                     .iter()
-                    .map(|vertex| layer.edges.get(vertex).unwrap()),
-            );
-        }
-
-        return edges;
+                    .map(|child_index| VertexID::new(vertex.layer - 1, *child_index))
+                    .collect(),
+            ),
+            None => None,
+        };
     }
 
-    pub fn get_sources(&self) -> Vec<Vertex> {
+    pub fn get_sources_indexes(&self) -> Vec<VertexID> {
         // get the sources of the graph
         self.layers[0]
             .vertices
             .iter()
-            .map(|vertex| *vertex)
+            .map(|vertex| vertex.vertex_id.clone())
             .collect()
     }
 
-    pub fn get_drains(&self) -> Vec<Vertex> {
+    pub fn get_drains_indexes(&self) -> Vec<VertexID> {
         // get the drains of the graph
         self.layers[self.layers.len() - 1]
             .vertices
             .iter()
-            .map(|vertex| *vertex)
+            .map(|vertex| vertex.vertex_id.clone())
             .collect()
     }
 
-    pub fn get_vertex_layers(&self) -> Vec<Vec<Vertex>> {
+    pub fn get_vertex_layers_with_indexes(&self) -> Vec<Vec<VertexID>> {
         // get the layers of the graph
         let mut layers = Vec::new();
 
-        for layer in &self.layers {
-            layers.push(layer.vertices.clone());
-        }
+        self.layers.iter().for_each(|layer| {
+            layers.push(
+                layer
+                    .vertices
+                    .iter()
+                    .map(|vertex| vertex.vertex_id.clone())
+                    .collect(),
+            );
+        });
 
         return layers;
     }
 
-    pub fn get_neighbours(&self, vertex: Vertex) -> Vec<Vertex> {
+    pub fn get_layer_structure(&self) -> Vec<usize> {
+        // get the structure of the layers
+        self.layers
+            .iter()
+            .map(|layer| layer.vertices.len())
+            .collect()
+    }
+
+    pub fn get_neighbours(&self, vertex: &VertexID) -> Vec<VertexID> {
         // get the neighbours of a vertex
         let mut neighbours = Vec::new();
 
-        let vertex_layer = self
-            .layers
-            .iter()
-            .position(|layer| layer.vertices.contains(&vertex))
-            .unwrap();
-
-        neighbours.append(&mut self.get_children(vertex_layer - 1, vertex));
-        neighbours.push(self.get_parent(vertex_layer, vertex));
+        if vertex.layer != self.layers.len() - 1 {
+            neighbours.push(self.get_parent(vertex).unwrap());
+        }
+        if vertex.layer != 0 {
+            neighbours.append(&mut self.get_children(vertex).unwrap());
+        }
 
         return neighbours;
     }
 
-    pub fn calculate_edge_flows(&self) -> HashMap<DirectedEdge, usize> {
-        // calculate the flows of the edges of the graph
-        let mut edge_flows = HashMap::new();
-        let mut vertex_flows = HashMap::new();
+    pub fn calculate_edge_flows(&self) -> Vec<Vec<usize>> {
+        // calculate the flows of the edges of the graph, assumes a valid flamecast graph
+        let mut edge_flows = Vec::new();
 
-        self.layers[0].vertices.iter().for_each(|vertex| {
-            vertex_flows.insert(*vertex, 1);
-        });
+        edge_flows.push(vec![1; self.layers[0].vertices.len()]);
 
-        for layer in &self.layers {
-            layer.edges.values().for_each(|(source, target)| {
-                let flow = *vertex_flows.get(source).unwrap();
-                edge_flows.insert((*source, *target), flow);
-                *vertex_flows.entry(*target).or_insert(0) += flow;
+        for layer in self.layers.iter().skip(1) {
+            let mut current_layer_flows = Vec::new();
+
+            if layer.index == self.layers.len() - 1 {
+                break;
+            }
+
+            layer.vertices.iter().for_each(|vertex| {
+                let flow = vertex
+                    .children_indices
+                    .as_ref()
+                    .unwrap()
+                    .iter()
+                    .fold(0, |acc, child_index| {
+                        acc + edge_flows[vertex.vertex_id.layer - 1][*child_index]
+                    });
+                current_layer_flows.push(flow);
             });
+            edge_flows.push(current_layer_flows);
         }
 
         return edge_flows;

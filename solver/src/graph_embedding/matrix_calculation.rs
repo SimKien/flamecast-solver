@@ -2,7 +2,7 @@ use std::{collections::HashMap, vec};
 
 use clarabel::algebra::CscMatrix;
 
-use crate::{DirectedEdge, Vertex};
+use crate::LayeredGraph;
 
 pub fn calculate_p_matrix(
     number_of_regarded_vertices: usize,
@@ -20,69 +20,83 @@ pub fn calculate_p_matrix(
     );
 }
 
-//TODO: Optimize this according to the formula on tablet
 pub fn calculate_a_matrix(
-    edges: &Vec<DirectedEdge>,
-    regarded_vertices: &Vec<Vertex>,
+    graph: &LayeredGraph,
+    number_of_regarded_vertices: usize,
+    number_of_edges: usize,
 ) -> CscMatrix<f64> {
     // calculate A-Matrix for clarabel
-    let number_of_regarded_vertices = regarded_vertices.len();
-    let number_of_edges = edges.len();
-
-    // create map which maps vertices to their corresponding index
-    let mut vertices_indexes = HashMap::new();
-    regarded_vertices
-        .iter()
-        .enumerate()
-        .for_each(|(index, vertex)| {
-            vertices_indexes.insert(*vertex, index);
-        });
-
-    // save for each vertex-index the connexted edge-index and whether its the source or the drain
-    let mut connections = vec![Vec::new(); number_of_regarded_vertices];
-    for (index, edge) in edges.iter().enumerate() {
-        let source_index = vertices_indexes.get(&edge.0);
-        let drain_index = vertices_indexes.get(&edge.1);
-
-        if source_index.is_some() {
-            let source_index = source_index.unwrap();
-            connections[*source_index].push((index, -1.0));
-        }
-        if drain_index.is_some() {
-            let drain_index = drain_index.unwrap();
-            connections[*drain_index].push((index, 1.0));
-        }
-    }
 
     let mut col_ptr = vec![0; 2 * number_of_regarded_vertices + number_of_edges + 1];
     let mut row_val = Vec::new();
     let mut values = Vec::new();
 
-    for vertex_index in 0..number_of_regarded_vertices {
-        let vertex_connections = &mut connections[vertex_index];
-        vertex_connections.sort_by(|(a, _), (b, _)| a.cmp(b));
+    let num_values = 2 * number_of_edges
+        - graph.layers[0].vertices.len()
+        - graph.layers[graph.layers.len() - 2].vertices.len();
 
-        col_ptr[vertex_index + 1] = col_ptr[vertex_index] + vertex_connections.len();
-        values.append(
-            vertex_connections
-                .iter()
-                .map(|(_, value)| *value)
-                .collect::<Vec<f64>>()
-                .as_mut(),
-        );
-        row_val.append(
-            vertex_connections
-                .iter()
-                .map(|(index, _)| 3 * index + 1)
-                .collect::<Vec<usize>>()
-                .as_mut(),
-        );
-    }
+    let mut current_edge_index = 0;
+    let mut current_vertex_index = 0;
+    let mut connected_edges = HashMap::new();
+    for (layer_index, layer) in graph.layers.iter().enumerate() {
+        if layer_index == graph.layers.len() - 1 {
+            break;
+        }
 
-    let total_connections = col_ptr[number_of_regarded_vertices];
-    for vertex_index in 0..number_of_regarded_vertices {
-        col_ptr[number_of_regarded_vertices + vertex_index + 1] =
-            total_connections + col_ptr[vertex_index + 1];
+        let layer_size = layer.vertices.len();
+
+        let mut edge_index = 0;
+        if layer_index == 0 {
+            layer.vertices.iter().for_each(|vertex| {
+                let parent_index = vertex.parent_index.unwrap();
+
+                connected_edges
+                    .entry(parent_index)
+                    .or_insert(Vec::new())
+                    .push(edge_index);
+
+                edge_index += 1;
+            });
+        } else {
+            layer.vertices.iter().for_each(|vertex| {
+                let vertex_input_edges = connected_edges
+                    .get(&(current_vertex_index + vertex.vertex_id.index))
+                    .unwrap();
+
+                values.append(&mut vec![1.0; vertex_input_edges.len()]);
+                col_ptr[current_vertex_index + vertex.vertex_id.index + 1] = col_ptr
+                    [current_vertex_index + vertex.vertex_id.index]
+                    + vertex_input_edges.len()
+                    + 1;
+                col_ptr[current_vertex_index
+                    + vertex.vertex_id.index
+                    + 1
+                    + number_of_regarded_vertices] =
+                    col_ptr[current_vertex_index + vertex.vertex_id.index + 1] + num_values;
+                row_val.append(
+                    &mut vertex_input_edges
+                        .iter()
+                        .map(|x| 3 * x + 1)
+                        .collect::<Vec<usize>>(),
+                );
+
+                let parent_index = vertex.parent_index.unwrap();
+
+                values.push(-1.0);
+                row_val.push(3 * (current_edge_index + edge_index) + 1);
+
+                connected_edges
+                    .entry(current_vertex_index + layer_size + parent_index)
+                    .or_insert(Vec::new())
+                    .push(current_edge_index + edge_index);
+
+                edge_index += 1;
+            });
+
+            current_vertex_index += layer_size;
+        }
+
+        current_edge_index += layer_size;
     }
 
     // also consider the y values constraints by adding the same constraints for the y values as for the x values above
@@ -99,11 +113,11 @@ pub fn calculate_a_matrix(
         values.push(-1.0);
     }
 
-    CscMatrix::new(
+    return CscMatrix::new(
         3 * number_of_edges,
         2 * number_of_regarded_vertices + number_of_edges,
         col_ptr,
         row_val,
         values,
-    )
+    );
 }

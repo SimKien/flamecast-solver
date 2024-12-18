@@ -1,10 +1,8 @@
-use std::collections::HashMap;
-
 use rand::Rng;
 
 use crate::{
     embed_graph, generate_random_graph, plotting::plot_embedded_graph, tests::float_equal,
-    LayeredGraph, Options, Vertex, VertexEmbedding, VertexEmbeddings,
+    LayeredGraph, Options, VertexEmbedding, VertexEmbeddings,
 };
 
 use super::{
@@ -18,23 +16,21 @@ fn test_random_graph(num_nodes: usize, num_layers: usize, alpha: f64, index: usi
     let side_distance = x_delta / 2.0;
 
     let mut rng = rand::thread_rng();
-    let mut sources_embeddings = VertexEmbeddings::new();
-    let mut drains_embeddings = VertexEmbeddings::new();
+    let mut sources_drains_embeddings = VertexEmbeddings::new_with_size(num_layers);
 
-    for source in random_graph.get_sources().iter() {
+    for _ in random_graph.get_sources_indexes().iter() {
         let y = rng.gen_range(0.0..=1.0);
-        sources_embeddings.insert(*source, (side_distance, y));
+        sources_drains_embeddings.embeddings[0].push((side_distance, y));
     }
-    for drain in random_graph.get_drains().iter() {
+    for _ in random_graph.get_drains_indexes().iter() {
         let y = rng.gen_range(0.0..=1.0);
-        drains_embeddings.insert(*drain, (1.0 - side_distance, y));
+        sources_drains_embeddings.embeddings[num_layers - 1].push((1.0 - side_distance, y));
     }
 
     let embedded_graph = embed_graph(
         random_graph.clone(),
+        &sources_drains_embeddings,
         alpha,
-        &sources_embeddings,
-        &drains_embeddings,
         Options::default(),
     );
 
@@ -50,15 +46,13 @@ fn test_random_graph(num_nodes: usize, num_layers: usize, alpha: f64, index: usi
 fn test_predefined_graph(index: usize) {
     let test_graph = TESTGRAPHS[index].clone();
     let graph = test_graph.graph.clone();
-    let sources_embeddings = TESTGRAPHS[index].source_embeddings.clone();
-    let drains_embeddings = TESTGRAPHS[index].drain_embeddings.clone();
-    let alpha = TESTGRAPHS[index].alpha;
+    let sources_drains_embeddings = &test_graph.sources_drains_embeddings;
+    let alpha = test_graph.alpha;
 
     let calculated_embeddings = embed_graph(
         graph.clone(),
+        sources_drains_embeddings,
         alpha,
-        &sources_embeddings,
-        &drains_embeddings,
         Options::default(),
     )
     .vertices_embeddings;
@@ -70,13 +64,13 @@ fn test_predefined_graph(index: usize) {
             compare_with_expected_embeddings(&calculated_embeddings, &embedding_sample);
         }
         false => {
-            compare_with_generalized_weiszfeld(&calculated_embeddings, &graph, test_graph.alpha);
+            compare_with_generalized_weiszfeld(&calculated_embeddings, &graph, alpha);
         }
     }
 }
 
 fn compare_with_expected_embeddings(
-    calculated_embeddings: &HashMap<Vertex, VertexEmbedding>,
+    calculated_embeddings: &VertexEmbeddings,
     embedding_sample: &EmbeddingSample,
 ) {
     assert!(embeddings_equal(
@@ -86,54 +80,57 @@ fn compare_with_expected_embeddings(
 }
 
 fn compare_with_generalized_weiszfeld(
-    calculated_embeddings: &HashMap<Vertex, VertexEmbedding>,
+    calculated_embeddings: &VertexEmbeddings,
     graph: &LayeredGraph,
     alpha: f64,
 ) {
-    let mut unregarded_nodes = graph.layers[0].vertices.clone();
-    unregarded_nodes.extend(&graph.layers[graph.layers.len() - 1].vertices);
-
     let flows = graph.calculate_edge_flows();
 
-    for node in graph.cumulate_vertices().iter() {
-        if unregarded_nodes.contains(node) {
-            continue;
+    for layer in graph.layers.iter().skip(1) {
+        if layer.index == graph.layers.len() - 1 {
+            break;
         }
-
-        let calculated_embedding = calculated_embeddings.get(node).unwrap();
-        let surrounding_nodes = graph.get_neighbours(*node);
-        let surrounding_points = surrounding_nodes
-            .iter()
-            .map(|node| calculated_embeddings.get(node).unwrap().clone())
-            .collect::<Vec<VertexEmbedding>>();
-        let surrounding_weights = surrounding_nodes
-            .iter()
-            .map(|neighbour| {
-                let flow = match flows.get(&(*node, *neighbour)) {
-                    Some(flow) => flow,
-                    None => flows.get(&(*neighbour, *node)).unwrap(),
-                };
-                return (*flow as f64).powf(alpha);
-            })
-            .collect::<Vec<f64>>();
-        let calculated_value = generalized_weiszfeld_value(
-            *calculated_embedding,
-            &surrounding_points,
-            &surrounding_weights,
-        );
-
-        let expected_value = objective_value(
-            &surrounding_points
+        for vertex in layer.vertices.iter() {
+            let calculated_embedding =
+                calculated_embeddings.embeddings[vertex.vertex_id.layer][vertex.vertex_id.index];
+            let children = graph.get_children(&vertex.vertex_id).unwrap();
+            let parent = graph.get_parent(&vertex.vertex_id).unwrap();
+            let mut surrounding_nodes = children.clone();
+            surrounding_nodes.push(parent);
+            let surrounding_points = surrounding_nodes
                 .iter()
-                .map(|(x, y)| {
-                    ((x - calculated_embedding.0).powi(2) + (y - calculated_embedding.1).powi(2))
-                        .sqrt()
+                .map(|node| calculated_embeddings.embeddings[node.layer][node.index])
+                .collect::<Vec<VertexEmbedding>>();
+            let mut surrounding_weights = children
+                .iter()
+                .map(|child| {
+                    let flow = flows[child.layer][child.index] as f64;
+                    return flow.powf(alpha);
                 })
-                .collect::<Vec<f64>>(),
-            &surrounding_weights,
-        );
+                .collect::<Vec<f64>>();
+            surrounding_weights
+                .push((flows[vertex.vertex_id.layer][vertex.vertex_id.index] as f64).powf(alpha));
 
-        assert!(float_equal(calculated_value, expected_value));
+            let calculated_value = generalized_weiszfeld_value(
+                calculated_embedding,
+                &surrounding_points,
+                &surrounding_weights,
+            );
+
+            let expected_value = objective_value(
+                &surrounding_points
+                    .iter()
+                    .map(|(x, y)| {
+                        ((x - calculated_embedding.0).powi(2)
+                            + (y - calculated_embedding.1).powi(2))
+                        .sqrt()
+                    })
+                    .collect::<Vec<f64>>(),
+                &surrounding_weights,
+            );
+
+            assert!(float_equal(calculated_value, expected_value));
+        }
     }
 }
 
@@ -230,6 +227,11 @@ fn test_predefined_graph_9() {
 #[test]
 fn test_predefined_graph_10() {
     test_predefined_graph(9);
+}
+
+#[test]
+fn test_predefined_graph_11() {
+    test_predefined_graph(10);
 }
 
 #[test]

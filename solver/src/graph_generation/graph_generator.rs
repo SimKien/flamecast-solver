@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use rand::Rng;
 
 use crate::{Layer, LayeredGraph, Vertex};
@@ -31,36 +29,42 @@ pub fn generate_random_directed_graph(num_nodes: usize, num_layers: usize) -> La
     }
     split_indexes.sort();
 
-    let mut layers = Vec::new();
+    let mut layer_sizes = Vec::new();
     let mut current_split_index = 0;
     for index in split_indexes {
-        let layer = (current_split_index..index).collect::<Vec<Vertex>>();
-        layers.push(Layer::new(layer, HashMap::new()));
+        layer_sizes.push(index - current_split_index);
         current_split_index = index;
     }
-    layers.push(Layer::new(
-        (current_split_index..num_nodes).collect::<Vec<usize>>(),
-        HashMap::new(),
-    ));
-    layers.sort_by(|a, b| b.vertices.len().cmp(&a.vertices.len()));
+    layer_sizes.push(num_nodes - current_split_index);
+    layer_sizes.sort_by(|a, b| b.cmp(a));
+
+    let mut layers = Vec::new();
+    let mut layer_index = 0;
+    for size in layer_sizes {
+        let mut layer = Layer::new_with_index(layer_index);
+        (0..size).for_each(|_| {
+            layer.add_vertex(Vertex::new_empty());
+        });
+        layers.push(layer);
+        layer_index += 1;
+    }
 
     // generate random edges between following layers
-    for i in 0..(num_layers - 1) {
-        let mut new_edges = HashMap::new();
-        let layer1 = &layers[i];
-        let layer2 = &layers[i + 1];
+    for layer_index in 0..(num_layers - 1) {
+        let (first, last) = layers.split_at_mut(layer_index + 1);
+
+        let layer1 = &mut first[layer_index];
+        let layer2 = &mut last[0];
         for i in 0..layer2.vertices.len() {
-            new_edges.insert(layer1.vertices[i], (layer1.vertices[i], layer2.vertices[i]));
+            layer1.vertices[i].set_parent(i);
+            layer2.vertices[i].add_child(i);
         }
         for i in layer2.vertices.len()..layer1.vertices.len() {
             let random_vertex = rng.gen_range(0..layer2.vertices.len());
-            new_edges.insert(
-                layer1.vertices[i],
-                (layer1.vertices[i], layer2.vertices[random_vertex]),
-            );
+            layer1.vertices[i].set_parent(random_vertex);
+            layer2.vertices[random_vertex].add_child(i);
         }
-        layers[i].edges = new_edges;
     }
 
-    LayeredGraph::new(layers, num_nodes, Vec::new())
+    return LayeredGraph::new(layers);
 }

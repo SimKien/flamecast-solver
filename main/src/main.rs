@@ -2,9 +2,8 @@ use std::env;
 
 use rand::Rng;
 use solver::{
-    combine_testing_graphs, embed_graph, generate_random_graph, get_drains, get_sources,
-    get_test_graph, get_test_graphs_len, plot_graph, Options, SearchDepth, TestGraph,
-    VertexEmbeddings,
+    combine_testing_graphs, embed_graph, generate_random_graph, get_test_graph,
+    get_test_graphs_len, plot_graph, Options, SearchDepth, TestGraph, VertexEmbeddings,
 };
 
 pub const DEFAULT_NUM_NODES: usize = 200;
@@ -26,17 +25,12 @@ fn main() {
     }
     let test_graph = test_graph.unwrap();
 
-    println!("{:?}", test_graph.graph);
-
     let embedded_graph = embed_graph(
         test_graph.graph,
+        &test_graph.sources_drains_embeddings,
         test_graph.alpha,
-        &test_graph.source_embeddings,
-        &test_graph.drain_embeddings,
         Options::new(true, SEARCH_DEPTH, TIME_LIMIT, true, false),
     );
-
-    println!("{:?}", embedded_graph.vertices_embeddings);
 
     plot_graph("./plots/output.png", &embedded_graph, true);
 }
@@ -50,22 +44,21 @@ fn convert_args_to_graph(args: Vec<String>) -> Option<TestGraph> {
             let side_distance = x_delta / 2.0;
 
             let mut rng = rand::thread_rng();
-            let mut source_embeddings = VertexEmbeddings::new();
-            let mut drain_embeddings = VertexEmbeddings::new();
+            let mut sources_drains_embeddings = VertexEmbeddings::new_with_size(DEFAULT_NUM_LAYERS);
 
-            for source in get_sources(&graph).iter() {
+            for _ in graph.get_sources_indexes().iter() {
                 let y = rng.gen_range(0.0..=1.0);
-                source_embeddings.insert(*source, (side_distance, y));
+                sources_drains_embeddings.embeddings[0].push((side_distance, y));
             }
-            for drain in get_drains(&graph).iter() {
+            for _ in graph.get_drains_indexes().iter() {
                 let y = rng.gen_range(0.0..=1.0);
-                drain_embeddings.insert(*drain, (1.0 - side_distance, y));
+                sources_drains_embeddings.embeddings[DEFAULT_NUM_LAYERS - 1]
+                    .push((1.0 - side_distance, y));
             }
 
             Some(TestGraph {
                 graph,
-                source_embeddings,
-                drain_embeddings,
+                sources_drains_embeddings,
                 alpha: DEFAULT_ALPHA,
             })
         }
@@ -118,22 +111,20 @@ fn convert_args_to_graph(args: Vec<String>) -> Option<TestGraph> {
             let side_distance = x_delta / 2.0;
 
             let mut rng = rand::thread_rng();
-            let mut source_embeddings = VertexEmbeddings::new();
-            let mut drain_embeddings = VertexEmbeddings::new();
+            let mut sources_drains_embeddings = VertexEmbeddings::new_with_size(num_layers);
 
-            for source in get_sources(&graph).iter() {
+            for _ in graph.get_sources_indexes().iter() {
                 let y = rng.gen_range(0.0..=1.0);
-                source_embeddings.insert(*source, (side_distance, y));
+                sources_drains_embeddings.embeddings[0].push((side_distance, y));
             }
-            for drain in get_drains(&graph).iter() {
+            for _ in graph.get_drains_indexes().iter() {
                 let y = rng.gen_range(0.0..=1.0);
-                drain_embeddings.insert(*drain, (1.0 - side_distance, y));
+                sources_drains_embeddings.embeddings[num_layers - 1].push((1.0 - side_distance, y));
             }
 
             Some(TestGraph {
                 graph,
-                source_embeddings,
-                drain_embeddings,
+                sources_drains_embeddings,
                 alpha,
             })
         }

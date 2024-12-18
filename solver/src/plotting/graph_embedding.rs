@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use plotters::{
     prelude::{BitMapBackend, IntoDrawingArea},
     style::{RGBColor, BLACK, WHITE},
@@ -24,21 +22,29 @@ pub fn plot_embedded_graph(file_path: &str, embedded_graph: &GraphEmbedding, sho
     // Calculate vertex colors for nodes
     let vertex_colors = calculate_vertex_colors(&embedded_graph.base_graph, show_layers);
 
-    // Draw vertices and edges for each layer
-    for layer in embedded_graph.base_graph.layers.iter() {
-        // Draw edges first because they should be behind the vertices
-        for edge in layer.edges.values() {
-            let source = embedded_graph.vertices_embeddings.get(&edge.0).unwrap();
-            let target = embedded_graph.vertices_embeddings.get(&edge.1).unwrap();
+    let graph = &embedded_graph.base_graph;
+    let embeddings = &embedded_graph.vertices_embeddings;
 
-            root.draw(&create_edge(source, target)).unwrap();
+    // Draw vertices and edges for each layer
+    for layer in graph.layers.iter() {
+        // Draw edges first because they should be behind the vertices
+
+        let layer_index = layer.index;
+        // Draw edges
+        if layer_index != graph.layers.len() - 1 {
+            for vertex in layer.vertices.iter() {
+                let source = &embeddings.embeddings[layer_index][vertex.vertex_id.index];
+                let target = &embeddings.embeddings[layer_index + 1][vertex.parent_index.unwrap()];
+
+                root.draw(&create_edge(source, target)).unwrap();
+            }
         }
 
         // Draw vertices
         for vertex in layer.vertices.iter() {
             root.draw(&create_node(
-                &embedded_graph.vertices_embeddings.get(vertex).unwrap(),
-                vertex_colors.get(vertex).unwrap().clone(),
+                &embeddings.embeddings[layer_index][vertex.vertex_id.index],
+                vertex_colors[layer_index],
             ))
             .unwrap();
         }
@@ -47,37 +53,24 @@ pub fn plot_embedded_graph(file_path: &str, embedded_graph: &GraphEmbedding, sho
     root.present().unwrap();
 }
 
-fn calculate_vertex_colors(graph: &LayeredGraph, show_layers: bool) -> HashMap<usize, RGBColor> {
-    let mut vertex_colors = HashMap::new();
+fn calculate_vertex_colors(graph: &LayeredGraph, show_layers: bool) -> Vec<RGBColor> {
+    let mut vertex_colors = Vec::new();
 
     if show_layers {
-        let layers = graph.get_vertex_layers();
+        let mut rng = thread_rng();
+        let mut color_indices: Vec<usize> = (0..NUM_DISTINCT_COLORS).collect();
+        color_indices.shuffle(&mut rng);
 
-        let mut rnd_order: Vec<usize> = (0..NUM_DISTINCT_COLORS).collect();
-        rnd_order.shuffle(&mut thread_rng());
+        for i in 0..graph.layers.len() {
+            let color = DISTINCT_COLORS[color_indices[i % NUM_DISTINCT_COLORS]];
+            vertex_colors.push(color);
 
-        let mut index = 0;
-        for layer in layers.iter() {
-            let color = DISTINCT_COLORS[rnd_order[index]];
-            index += 1;
-
-            for vertex in layer.iter() {
-                vertex_colors.insert(*vertex, color);
-            }
-
-            if index == NUM_DISTINCT_COLORS {
-                rnd_order.shuffle(&mut thread_rng());
-                index = 0;
+            if i == (NUM_DISTINCT_COLORS - 1) {
+                color_indices.shuffle(&mut rng);
             }
         }
-
-        return vertex_colors;
     } else {
-        for layer in graph.layers.iter() {
-            for vertex in layer.vertices.iter() {
-                vertex_colors.insert(*vertex, BLACK);
-            }
-        }
+        vertex_colors = vec![BLACK; graph.layers.len()];
     }
 
     return vertex_colors;

@@ -1,51 +1,58 @@
-use crate::{
-    types::{Vertex, VertexEmbeddings},
-    DirectedEdge, LayeredGraph,
-};
+use crate::{types::VertexEmbeddings, LayeredGraph};
 
 pub fn calculate_q_vector(
     graph: &LayeredGraph,
-    edges: &Vec<DirectedEdge>,
-    number_of_regarded_endpoints: usize,
+    number_of_regarded_vertices: usize,
+    number_of_edges: usize,
     alpha: f64,
 ) -> Vec<f64> {
     // calculate q-vector for clarabel
-    let number_of_egdes = edges.len();
     let edge_flows = graph.calculate_edge_flows();
 
-    let mut q = vec![0.0 as f64; 2 * number_of_regarded_endpoints + number_of_egdes];
+    let mut q = vec![0.0 as f64; 2 * number_of_regarded_vertices + number_of_edges];
 
-    edges.iter().enumerate().for_each(|(index, edge)| {
-        let edge_flow = edge_flows.get(edge).unwrap();
-        let flow_weight = (*edge_flow as f64).powf(alpha);
-        q[2 * number_of_regarded_endpoints + index] = flow_weight;
-    });
+    let mut edge_index = 0;
+    for layer_index in 0..graph.layers.len() - 1 {
+        let layer = &graph.layers[layer_index];
+
+        for vertex_index in 0..layer.vertices.len() {
+            let flow = edge_flows[layer_index][vertex_index] as f64;
+            let flow_weight = flow.powf(alpha);
+            q[2 * number_of_regarded_vertices + edge_index] = flow_weight;
+            edge_index += 1;
+        }
+    }
 
     return q;
 }
 
 pub fn calculate_b_vector(
-    edges: &Vec<DirectedEdge>,
-    sources: &Vec<Vertex>,
-    drains: &Vec<Vertex>,
-    sources_embeddings: &VertexEmbeddings,
-    drains_embeddings: &VertexEmbeddings,
+    graph: &LayeredGraph,
+    number_of_edges: usize,
+    sources_drains_embeddings: &VertexEmbeddings,
 ) -> Vec<f64> {
     // calculate b-vector for clarabel
-    let mut b = vec![0.0; 3 * edges.len()];
+    let mut b = vec![0.0; 3 * number_of_edges];
 
-    for (index, (start, end)) in edges.iter().enumerate() {
-        if sources.contains(start) {
-            let embedding = sources_embeddings.get(start).unwrap();
-            b[3 * index + 1] += embedding.0;
-            b[3 * index + 2] += embedding.1;
-        }
-        if drains.contains(end) {
-            let embedding = drains_embeddings.get(end).unwrap();
-            b[3 * index + 1] -= embedding.0;
-            b[3 * index + 2] -= embedding.1;
-        }
-    }
+    graph.layers[0].vertices.iter().for_each(|vertex| {
+        let embedding = sources_drains_embeddings.embeddings[0][vertex.vertex_id.index];
+        b[3 * vertex.vertex_id.index + 1] = embedding.0;
+        b[3 * vertex.vertex_id.index + 2] = embedding.1;
+    });
+
+    let edge_base_index = number_of_edges - graph.layers[graph.layers.len() - 2].vertices.len();
+
+    graph.layers[graph.layers.len() - 2]
+        .vertices
+        .iter()
+        .for_each(|vertex| {
+            let parent_index = vertex.parent_index.unwrap();
+
+            let embedding =
+                sources_drains_embeddings.embeddings[graph.layers.len() - 1][parent_index];
+            b[3 * (edge_base_index + vertex.vertex_id.index) + 1] = -embedding.0;
+            b[3 * (edge_base_index + vertex.vertex_id.index) + 2] = -embedding.1;
+        });
 
     return b;
 }

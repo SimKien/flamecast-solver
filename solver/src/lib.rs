@@ -21,36 +21,25 @@ pub fn generate_random_graph(num_nodes: usize, num_layers: usize) -> LayeredGrap
     return generate_random_directed_graph(num_nodes, num_layers);
 }
 
-pub fn get_sources(graph: &LayeredGraph) -> Vec<Vertex> {
-    return graph.get_sources();
+pub fn get_sources_indexes(graph: &LayeredGraph) -> Vec<VertexID> {
+    return graph.get_sources_indexes();
 }
 
-pub fn get_drains(graph: &LayeredGraph) -> Vec<Vertex> {
-    return graph.get_drains();
+pub fn get_drains_indexes(graph: &LayeredGraph) -> Vec<VertexID> {
+    return graph.get_drains_indexes();
 }
 
-pub fn get_layers(graph: &LayeredGraph) -> Vec<Vec<Vertex>> {
-    return graph.get_vertex_layers();
+pub fn get_layers_with_indexes(graph: &LayeredGraph) -> Vec<Vec<VertexID>> {
+    return graph.get_vertex_layers_with_indexes();
 }
 
 pub fn embed_graph(
     graph: LayeredGraph,
+    sources_drains_embeddings: &VertexEmbeddings,
     alpha: f64,
-    sources_embeddings: &VertexEmbeddings,
-    drains_embeddings: &VertexEmbeddings,
     options: Options,
 ) -> GraphEmbedding {
-    let sources = &get_sources(&graph);
-    let drains = &get_drains(&graph);
-    let graph_embedding = embed_directed_graph(
-        &graph,
-        alpha,
-        sources,
-        drains,
-        sources_embeddings,
-        drains_embeddings,
-        options,
-    );
+    let graph_embedding = embed_directed_graph(&graph, sources_drains_embeddings, alpha, options);
     return GraphEmbedding::new(graph, graph_embedding);
 }
 

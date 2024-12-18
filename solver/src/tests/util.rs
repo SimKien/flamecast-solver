@@ -6,21 +6,29 @@ pub fn embeddings_equal(
     calculated_embeddings: &VertexEmbeddings,
     expected_embeddings: &VertexEmbeddings,
 ) -> bool {
-    if calculated_embeddings.len() != expected_embeddings.len() {
+    if calculated_embeddings.embeddings.len() != expected_embeddings.embeddings.len() {
         return false;
     }
 
-    for (vertex, calculated_embedding) in calculated_embeddings.iter() {
-        if !expected_embeddings.contains_key(vertex) {
+    for (calculated_layer, expected_layer) in calculated_embeddings
+        .embeddings
+        .iter()
+        .zip(expected_embeddings.embeddings.iter())
+    {
+        if calculated_layer.len() != expected_layer.len() {
             return false;
         }
-        let expected_embedding = expected_embeddings.get(vertex).unwrap();
-        if !float_equal(calculated_embedding.0, expected_embedding.0)
-            || !float_equal(calculated_embedding.1, expected_embedding.1)
+        for (calculated_embedding, expected_embedding) in
+            calculated_layer.iter().zip(expected_layer.iter())
         {
-            return false;
+            if !float_equal(calculated_embedding.0, expected_embedding.0)
+                || !float_equal(calculated_embedding.1, expected_embedding.1)
+            {
+                return false;
+            }
         }
     }
+
     return true;
 }
 

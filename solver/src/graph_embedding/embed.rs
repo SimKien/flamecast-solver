@@ -1,4 +1,4 @@
-use crate::types::{LayeredGraph, Vertex, VertexEmbeddings};
+use crate::types::{LayeredGraph, VertexEmbeddings};
 use clarabel::solver::{
     DefaultInfo, DefaultSettings, DefaultSettingsBuilder, DefaultSolution, DefaultSolver, IPSolver,
 };
@@ -10,43 +10,28 @@ use super::{
 
 pub fn embed_directed_graph(
     graph: &LayeredGraph,
+    sources_drains_embeddings: &VertexEmbeddings,
     alpha: f64,
-    sources: &Vec<Vertex>,
-    drains: &Vec<Vertex>,
-    sources_embeddings: &VertexEmbeddings,
-    drains_embeddings: &VertexEmbeddings,
     options: Options,
 ) -> VertexEmbeddings {
     // embed the graph using clarabel
-    // assertions: layered graph, only one outgoing edge from each vertex
-    let cumulated_edges = graph.cumulate_edges();
-    let number_of_edges = cumulated_edges.len();
-
-    let cumulated_vertices = graph.cumulate_vertices();
-    let regarded_vertices = cumulated_vertices
-        .iter()
-        .filter(|vertex| !sources.contains(vertex) && !drains.contains(vertex))
-        .map(|x| *x)
-        .collect::<Vec<Vertex>>();
-    let number_of_regarded_vertices = regarded_vertices.len();
+    // assertions: valid flamecast graph
+    let number_of_vertices = graph.get_number_of_vertices();
+    let number_of_regarded_vertices =
+        number_of_vertices - graph.get_sources_indexes().len() - graph.get_drains_indexes().len();
+    let number_of_edges = graph.get_number_of_edges();
 
     // calculate P-Matrix for clarabel
     let p = calculate_p_matrix(number_of_regarded_vertices, number_of_edges);
 
     // calculate q-vector for clarabel
-    let q = calculate_q_vector(graph, &cumulated_edges, number_of_regarded_vertices, alpha);
+    let q = calculate_q_vector(graph, number_of_regarded_vertices, number_of_edges, alpha);
 
     // calculate A-Matrix for clarabel
-    let a = calculate_a_matrix(&cumulated_edges, &regarded_vertices);
+    let a = calculate_a_matrix(graph, number_of_regarded_vertices, number_of_edges);
 
     // calculate b-vector for clarabel
-    let b = calculate_b_vector(
-        &cumulated_edges,
-        sources,
-        drains,
-        sources_embeddings,
-        drains_embeddings,
-    );
+    let b = calculate_b_vector(graph, number_of_edges, sources_drains_embeddings);
 
     // set cones for clarabel
     let cones = calculate_cones(number_of_edges);
@@ -66,13 +51,24 @@ pub fn embed_directed_graph(
     let solution = &solver.solution.x;
 
     // save the solution in the VertexEmbeddings format
-    let mut result = VertexEmbeddings::new();
-    result.extend(sources_embeddings.iter());
-    result.extend(drains_embeddings.iter());
-    for (index, vertex) in regarded_vertices.iter().enumerate() {
-        let x = solution[index];
-        let y = solution[index + number_of_regarded_vertices];
-        result.insert(*vertex, (x, y));
+    let mut result = sources_drains_embeddings.clone();
+
+    let mut current_vertex_index = 0;
+    for layer in graph.layers.iter().skip(1) {
+        let layer_index = layer.index;
+
+        if layer_index == graph.layers.len() - 1 {
+            break;
+        }
+
+        layer.vertices.iter().for_each(|vertex| {
+            let x = solution[current_vertex_index + vertex.vertex_id.index];
+            let y = solution
+                [current_vertex_index + vertex.vertex_id.index + number_of_regarded_vertices];
+            result.embeddings[layer_index].push((x, y));
+        });
+
+        current_vertex_index += layer.vertices.len();
     }
 
     // print information about the solution process
@@ -105,16 +101,33 @@ fn print_informations(
     if options.show_calculated_actual_edge_length_diff {
         let solution_vertices_number = 2 * number_of_regarded_vertices;
         let mut max_diff = 0.0;
-        for (index, edge) in graph.cumulate_edges().iter().enumerate() {
-            let source_embedding = vertex_embeddings.get(&edge.0).unwrap();
-            let target_embedding = vertex_embeddings.get(&edge.1).unwrap();
-            let edge_length = (source_embedding.0 - target_embedding.0)
-                .hypot(source_embedding.1 - target_embedding.1);
-            let dif = (edge_length - solution.x[solution_vertices_number + index]).abs();
-            if dif > max_diff {
-                max_diff = dif;
+
+        let mut index = 0;
+        for layer in graph.layers.iter() {
+            if layer.index == graph.layers.len() - 1 {
+                break;
             }
+
+            layer.vertices.iter().for_each(|vertex| {
+                let parent_index = vertex.parent_index.unwrap();
+
+                let source_embedding =
+                    vertex_embeddings.embeddings[layer.index][vertex.vertex_id.index];
+                let target_embedding = vertex_embeddings.embeddings[layer.index + 1][parent_index];
+
+                let edge_length = ((source_embedding.0 - target_embedding.0).powi(2)
+                    + (source_embedding.1 - target_embedding.1).powi(2))
+                .sqrt();
+
+                let dif = (edge_length - solution.x[solution_vertices_number + index]).abs();
+                if dif > max_diff {
+                    max_diff = dif;
+                }
+
+                index += 1;
+            });
         }
+
         println!(
             "Maximal difference between calculated and actual edge length: {}",
             max_diff

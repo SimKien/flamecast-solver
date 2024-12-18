@@ -1,7 +1,7 @@
 use crate::{LayeredGraph, Vertex};
 
 impl LayeredGraph {
-    // Merge only possible if the two nodes have the same parent
+    // Merging only possible if the two nodes have the same parent
     pub fn merge(&mut self, layer_index: usize, parent1: Vertex, parent2: Vertex) {
         let grand_parent = self.get_parent(layer_index + 1, parent1);
 
