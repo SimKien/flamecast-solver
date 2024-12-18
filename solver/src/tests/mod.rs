@@ -1,6 +1,8 @@
-mod test_graphs;
+mod embedding_test_graphs;
+mod flamecast_test_instances;
 
-pub use test_graphs::*;
+pub use embedding_test_graphs::*;
+pub use flamecast_test_instances::*;
 
 #[cfg(test)]
 pub const EPSILON: f64 = 0.000001;

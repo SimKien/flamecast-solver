@@ -1,9 +1,8 @@
-use std::env;
-
 use rand::Rng;
 use solver::{
-    combine_testing_graphs, embed_graph, generate_random_graph, get_test_graph,
-    get_test_graphs_len, plot_graph, Options, SearchDepth, TestGraph, VertexEmbeddings,
+    combine_testing_graphs, generate_flamecast_instance, generate_random_flamecast_test_instance,
+    generate_random_graph, get_test_graph, get_test_graphs_len, SearchDepth, TestGraph,
+    VertexEmbeddings,
 };
 
 pub const DEFAULT_NUM_NODES: usize = 200;
@@ -13,6 +12,32 @@ pub const SEARCH_DEPTH: SearchDepth = SearchDepth::Middle;
 pub const TIME_LIMIT: f64 = f64::INFINITY;
 
 fn main() {
+    let test_instance = generate_random_flamecast_test_instance(5, 50, 10, true);
+    let flamecast_instance = generate_flamecast_instance(
+        test_instance.alpha,
+        test_instance.num_layers,
+        test_instance.capacities,
+        test_instance.sources_drains_embeddings,
+    );
+
+    flamecast_instance.plot_current_solution("test", true);
+
+    println!(
+        "Topology valid: {}\ncosts: {}\ncapacities: {:?}",
+        flamecast_instance
+            .current_solution
+            .base_graph
+            .is_valid_flamecast_topology(
+                &flamecast_instance.capacities,
+                flamecast_instance.get_number_of_sources(),
+                flamecast_instance.get_number_of_drains(),
+                flamecast_instance.num_layers
+            ),
+        flamecast_instance.get_objective_function_value(),
+        flamecast_instance.capacities
+    );
+
+    /*
     let args = env::args().collect::<Vec<String>>();
 
     let test_graph = convert_args_to_graph(args);
@@ -33,6 +58,7 @@ fn main() {
     );
 
     plot_graph("./plots/output.png", &embedded_graph, true);
+    */
 }
 
 fn convert_args_to_graph(args: Vec<String>) -> Option<TestGraph> {

@@ -1,5 +1,5 @@
 use crate::{
-    graph_embedding::embed_directed_graph, graph_generation::generate_random_directed_graph,
+    graph_embedding::embed_directed_graph, graph_generation::generate_random_flamecast_graph,
     plotting::plot_embedded_graph, Options,
 };
 
@@ -22,18 +22,18 @@ impl FlamecastInstance {
         capacities: Vec<usize>,
         sources_drains_embeddings: VertexEmbeddings,
     ) -> Self {
-        let num_nodes = (0.5
-            * sources_drains_embeddings.embeddings[0].len() as f64
-            * num_layers as f64) as usize;
-        let initial_topology = generate_random_directed_graph(num_nodes, num_layers);
+        let initial_topology = generate_random_flamecast_graph(
+            num_layers,
+            &capacities,
+            sources_drains_embeddings.embeddings[0].len(),
+            sources_drains_embeddings.embeddings[num_layers - 1].len(),
+        );
         let initial_embedding = embed_directed_graph(
             &initial_topology,
             &sources_drains_embeddings,
             alpha,
             Options::default(),
         );
-
-        //TODO: Use random_flamecast_generator to generate the initial solution
 
         let initial_solution = GraphEmbedding::new(initial_topology, initial_embedding);
 
@@ -46,12 +46,24 @@ impl FlamecastInstance {
         }
     }
 
+    pub fn get_number_of_sources(&self) -> usize {
+        self.sources_drains_embeddings.embeddings[0].len()
+    }
+
+    pub fn get_number_of_drains(&self) -> usize {
+        self.sources_drains_embeddings.embeddings[self.num_layers - 1].len()
+    }
+
     pub fn plot_current_solution(&self, file_name: &str, show_layers: bool) {
         plot_embedded_graph(
             format!("{}{}.png", BASE_FILE_PATH, file_name).as_str(),
             &self.current_solution,
             show_layers,
         );
+    }
+
+    pub fn get_objective_function_value(&self) -> f64 {
+        self.current_solution.calculate_costs(self.alpha)
     }
 
     pub fn solve(&mut self) {

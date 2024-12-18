@@ -45,7 +45,7 @@ impl GraphEmbedding {
         let mut cost = 0.0;
 
         for layer in self.base_graph.layers.iter() {
-            if layer.vertices[0].vertex_id.layer == self.base_graph.layers.len() - 1 {
+            if layer.index == self.base_graph.layers.len() - 1 {
                 break;
             }
 

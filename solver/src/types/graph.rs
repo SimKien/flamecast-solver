@@ -109,8 +109,11 @@ impl Layer {
     pub fn from(index: usize, vertices: Vec<Vertex>) -> Self {
         let mut vertices = vertices;
 
+        let mut vertex_index = 0;
         vertices.iter_mut().for_each(|vertex| {
             vertex.set_layer(index);
+            vertex.set_index(vertex_index);
+            vertex_index += 1;
         });
 
         Self { index, vertices }
@@ -168,6 +171,12 @@ impl LayeredGraph {
         Self { layers: Vec::new() }
     }
 
+    pub fn new_with_size(num_layers: usize) -> Self {
+        Self {
+            layers: (0..num_layers).map(|i| Layer::new_with_index(i)).collect(),
+        }
+    }
+
     pub fn from_sources_drains(
         sources: Vec<Vertex>,
         drains: Vec<Vertex>,
@@ -204,7 +213,7 @@ impl LayeredGraph {
         return graph_string;
     }
 
-    pub fn add_vertex_to_layer(&mut self, layer_index: usize, vertex: Vertex) {
+    pub fn add_vertex_to_layer(&mut self, layer_index: usize, vertex: Vertex) -> VertexID {
         // add a vertex to a layer
         let (first, last) = self.layers.split_at_mut(layer_index);
 
@@ -223,6 +232,8 @@ impl LayeredGraph {
             let parent = &mut last[1].vertices[parent_index];
             parent.add_child(vertex_index);
         }
+
+        return VertexID::new(layer_index, vertex_index);
     }
 
     pub fn remove_vertex(&mut self, vertex: &VertexID) {
@@ -409,5 +420,66 @@ impl LayeredGraph {
         }
 
         return edge_flows;
+    }
+
+    pub fn is_valid_flamecast_topology(
+        &self,
+        capacities: &Vec<usize>,
+        number_of_sources: usize,
+        number_of_drains: usize,
+        num_layers: usize,
+    ) -> bool {
+        if self.layers.len() != num_layers {
+            return false;
+        }
+
+        if self.layers[0].vertices.len() != number_of_sources {
+            return false;
+        }
+        if self.layers[num_layers - 1].vertices.len() != number_of_drains {
+            return false;
+        }
+
+        let mut visited_vertices = self
+            .get_layer_structure()
+            .iter()
+            .map(|size| vec![false; *size])
+            .collect::<Vec<Vec<bool>>>();
+        let mut vertices_flows = self
+            .layers
+            .iter()
+            .map(|layer| vec![0; layer.vertices.len()])
+            .collect::<Vec<Vec<usize>>>();
+
+        for mut vertex in self.layers[0].vertices.iter() {
+            visited_vertices[0][vertex.vertex_id.index] = true;
+            let mut layer_index = 0;
+            vertices_flows[0][vertex.vertex_id.index] = 1;
+            while vertex.parent_index.is_some() {
+                let parent_index = vertex.parent_index.unwrap();
+                vertex = &self.layers[layer_index + 1].vertices[parent_index];
+                visited_vertices[layer_index + 1][parent_index] = true;
+                vertices_flows[layer_index + 1][parent_index] += 1;
+                layer_index += 1;
+            }
+            if layer_index != num_layers - 1 {
+                return false;
+            }
+        }
+
+        if visited_vertices
+            .iter()
+            .any(|layer| layer.iter().any(|vertex| !vertex))
+        {
+            return false;
+        }
+
+        for (layer_flows, capacity) in vertices_flows.iter().zip(capacities.iter()) {
+            if layer_flows.iter().any(|flow| *flow > *capacity) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

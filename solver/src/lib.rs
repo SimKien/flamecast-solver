@@ -10,7 +10,10 @@ pub use graph_embedding::{Options, SearchDepth};
 use graph_generation::generate_random_directed_graph;
 use plotting::plot_embedded_graph;
 pub use tests::TestGraph;
-use tests::{combine_test_graphs, TESTGRAPHS};
+use tests::{
+    combine_test_graphs, generate_random_flamecast_instance, FlamecastTestInstance,
+    FLAMECAST_TEST_INSTANCES, TESTGRAPHS,
+};
 pub use types::*;
 
 pub fn hello_world() {
@@ -19,6 +22,29 @@ pub fn hello_world() {
 
 pub fn generate_random_graph(num_nodes: usize, num_layers: usize) -> LayeredGraph {
     return generate_random_directed_graph(num_nodes, num_layers);
+}
+
+pub fn generate_random_flamecast_test_instance(
+    num_layers: usize,
+    num_sources: usize,
+    num_drains: usize,
+    clear_structure: bool,
+) -> FlamecastTestInstance {
+    return generate_random_flamecast_instance(
+        num_layers,
+        num_sources,
+        num_drains,
+        clear_structure,
+    );
+}
+
+pub fn generate_flamecast_instance(
+    alpha: f64,
+    num_layers: usize,
+    capacities: Vec<usize>,
+    sources_drains_embeddings: VertexEmbeddings,
+) -> FlamecastInstance {
+    return FlamecastInstance::new(alpha, num_layers, capacities, sources_drains_embeddings);
 }
 
 pub fn get_sources_indexes(graph: &LayeredGraph) -> Vec<VertexID> {
@@ -53,6 +79,14 @@ pub fn get_test_graph(index: usize) -> TestGraph {
 
 pub fn get_test_graphs_len() -> usize {
     return TESTGRAPHS.len();
+}
+
+pub fn get_test_flamecast_instance(index: usize) -> FlamecastTestInstance {
+    return FLAMECAST_TEST_INSTANCES[index].clone();
+}
+
+pub fn get_test_flamecast_instances_len() -> usize {
+    return FLAMECAST_TEST_INSTANCES.len();
 }
 
 pub fn combine_testing_graphs(graph1: &mut TestGraph, graph2: &TestGraph) -> Option<TestGraph> {
