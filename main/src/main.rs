@@ -2,7 +2,7 @@ use rand::Rng;
 use solver::{
     combine_testing_graphs, generate_flamecast_instance, generate_random_flamecast_test_instance,
     generate_random_graph, get_test_graph, get_test_graphs_len, SearchDepth, TestGraph,
-    VertexEmbeddings,
+    VertexEmbeddings, FLAMECAST_BASE_FILE_PATH,
 };
 
 pub const DEFAULT_NUM_NODES: usize = 200;
@@ -12,7 +12,7 @@ pub const SEARCH_DEPTH: SearchDepth = SearchDepth::Middle;
 pub const TIME_LIMIT: f64 = f64::INFINITY;
 
 fn main() {
-    let test_instance = generate_random_flamecast_test_instance(5, 50, 10, true);
+    let test_instance = generate_random_flamecast_test_instance(5, 80, 40, true);
     let flamecast_instance = generate_flamecast_instance(
         test_instance.alpha,
         test_instance.num_layers,
@@ -20,10 +20,11 @@ fn main() {
         test_instance.sources_drains_embeddings,
     );
 
-    flamecast_instance.plot_current_solution("test", true);
+    flamecast_instance
+        .plot_current_solution(format!("{}output", FLAMECAST_BASE_FILE_PATH).as_str(), true);
 
     println!(
-        "Topology valid: {}\ncosts: {}\ncapacities: {:?}",
+        "Topology valid: {}\ncosts: {}\ncapacities: {:?}\nlayers: {:?}",
         flamecast_instance
             .current_solution
             .base_graph
@@ -34,7 +35,11 @@ fn main() {
                 flamecast_instance.num_layers
             ),
         flamecast_instance.get_objective_function_value(),
-        flamecast_instance.capacities
+        flamecast_instance.capacities,
+        flamecast_instance
+            .current_solution
+            .base_graph
+            .get_layer_structure()
     );
 
     /*
@@ -61,6 +66,7 @@ fn main() {
     */
 }
 
+#[allow(dead_code)]
 fn convert_args_to_graph(args: Vec<String>) -> Option<TestGraph> {
     match args.len() {
         1 => {

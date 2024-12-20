@@ -44,25 +44,27 @@ impl GraphEmbedding {
         let edge_flows = self.base_graph.calculate_edge_flows();
         let mut cost = 0.0;
 
-        for layer in self.base_graph.layers.iter() {
-            if layer.index == self.base_graph.layers.len() - 1 {
+        for (layer_index, layer) in self.base_graph.layers.iter().enumerate() {
+            if layer_index == self.base_graph.layers.len() - 1 {
                 break;
             }
 
-            layer.vertices.iter().for_each(|vertex| {
-                let source_embedding = self.vertices_embeddings.embeddings[vertex.vertex_id.layer]
-                    [vertex.vertex_id.index];
-                let target_embedding = self.vertices_embeddings.embeddings
-                    [vertex.vertex_id.layer + 1][vertex.parent_index.unwrap()];
+            layer
+                .vertices
+                .iter()
+                .enumerate()
+                .for_each(|(vertex_index, vertex)| {
+                    let source_embedding =
+                        self.vertices_embeddings.embeddings[layer_index][vertex_index];
+                    let target_embedding = self.vertices_embeddings.embeddings[layer_index + 1]
+                        [vertex.parent_index.unwrap()];
 
-                let edge_len = ((source_embedding.0 - target_embedding.0).powi(2)
-                    + (source_embedding.1 - target_embedding.1).powi(2))
-                .sqrt();
+                    let edge_len = ((source_embedding.0 - target_embedding.0).powi(2)
+                        + (source_embedding.1 - target_embedding.1).powi(2))
+                    .sqrt();
 
-                cost += edge_len
-                    * (edge_flows[vertex.vertex_id.layer][vertex.vertex_id.index] as f64)
-                        .powf(alpha);
-            });
+                    cost += edge_len * (edge_flows[layer_index][vertex_index] as f64).powf(alpha);
+                });
         }
 
         return cost;

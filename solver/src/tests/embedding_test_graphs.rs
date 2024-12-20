@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use crate::{Layer, LayeredGraph, Vertex, VertexEmbeddings, VertexID};
+use crate::{Layer, LayeredGraph, Vertex, VertexEmbeddings};
 
 #[derive(Debug, Clone)]
 pub struct TestGraph {
@@ -10,22 +10,10 @@ pub struct TestGraph {
 }
 
 const GRAPH_1: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![Vertex::new(VertexID::new(1, 0), Some(0), Some(vec![0, 1]))],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(VertexID::new(2, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![Vertex::new(Some(0), None), Vertex::new(Some(0), None)]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0, 1]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![(0.25, 0.25), (0.25, 0.75)],
@@ -36,27 +24,14 @@ const GRAPH_1: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_2: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-                Vertex::new(VertexID::new(0, 2), Some(0), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![Vertex::new(
-                VertexID::new(1, 0),
-                Some(0),
-                Some(vec![0, 1, 2]),
-            )],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(VertexID::new(2, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+        ]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0, 1, 2]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![(0.25, 0.25), (0.25, 0.5), (0.25, 0.75)],
@@ -67,28 +42,15 @@ const GRAPH_2: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_3: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-                Vertex::new(VertexID::new(0, 2), Some(0), None),
-                Vertex::new(VertexID::new(0, 3), Some(0), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![Vertex::new(
-                VertexID::new(1, 0),
-                Some(0),
-                Some(vec![0, 1, 2, 3]),
-            )],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(VertexID::new(2, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+        ]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0, 1, 2, 3]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![(0.25, 0.25), (0.25, 0.375), (0.25, 0.625), (0.25, 0.75)],
@@ -99,26 +61,11 @@ const GRAPH_3: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_4: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![Vertex::new(VertexID::new(1, 0), Some(0), Some(vec![0, 1]))],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(VertexID::new(2, 0), Some(0), Some(vec![0]))],
-        ),
-        Layer::from(
-            3,
-            vec![Vertex::new(VertexID::new(3, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![Vertex::new(Some(0), None), Vertex::new(Some(0), None)]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0, 1]))]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![(0.25, 0.25), (0.25, 0.75)],
@@ -130,28 +77,15 @@ const GRAPH_4: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_5: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-                Vertex::new(VertexID::new(0, 2), Some(0), None),
-                Vertex::new(VertexID::new(0, 3), Some(0), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![Vertex::new(
-                VertexID::new(1, 0),
-                Some(0),
-                Some(vec![0, 1, 2, 3]),
-            )],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(VertexID::new(2, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+        ]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0, 1, 2, 3]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![(0.5, 0.75), (0.75, 0.5), (0.5, 0.25), (0.25, 0.5)],
@@ -162,29 +96,16 @@ const GRAPH_5: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_6: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-                Vertex::new(VertexID::new(0, 2), Some(0), None),
-                Vertex::new(VertexID::new(0, 3), Some(0), None),
-                Vertex::new(VertexID::new(0, 4), Some(0), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![Vertex::new(
-                VertexID::new(1, 0),
-                Some(0),
-                Some(vec![0, 1, 2, 3, 4]),
-            )],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(VertexID::new(2, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+        ]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0, 1, 2, 3, 4]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![
@@ -201,30 +122,17 @@ const GRAPH_6: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_7: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-                Vertex::new(VertexID::new(0, 2), Some(0), None),
-                Vertex::new(VertexID::new(0, 3), Some(0), None),
-                Vertex::new(VertexID::new(0, 4), Some(0), None),
-                Vertex::new(VertexID::new(0, 5), Some(0), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![Vertex::new(
-                VertexID::new(1, 0),
-                Some(0),
-                Some(vec![0, 1, 2, 3, 4, 5]),
-            )],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(VertexID::new(2, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+        ]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0, 1, 2, 3, 4, 5]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![
@@ -242,33 +150,21 @@ const GRAPH_7: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_8: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-                Vertex::new(VertexID::new(0, 2), Some(0), None),
-                Vertex::new(VertexID::new(0, 3), Some(1), None),
-                Vertex::new(VertexID::new(0, 4), Some(2), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![
-                Vertex::new(VertexID::new(1, 0), Some(0), Some(vec![0, 1, 2])),
-                Vertex::new(VertexID::new(1, 1), Some(0), Some(vec![3])),
-                Vertex::new(VertexID::new(1, 2), Some(0), Some(vec![4])),
-            ],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(VertexID::new(2, 0), Some(0), Some(vec![0]))],
-        ),
-        Layer::from(
-            3,
-            vec![Vertex::new(VertexID::new(3, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(1), None),
+            Vertex::new(Some(2), None),
+        ]),
+        Layer::from(vec![
+            Vertex::new(Some(0), Some(vec![0, 1, 2])),
+            Vertex::new(Some(0), Some(vec![3])),
+            Vertex::new(Some(0), Some(vec![4])),
+        ]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![
@@ -286,27 +182,14 @@ const GRAPH_8: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_9: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-                Vertex::new(VertexID::new(0, 2), Some(0), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![Vertex::new(
-                VertexID::new(1, 0),
-                Some(0),
-                Some(vec![0, 1, 2]),
-            )],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(VertexID::new(2, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+        ]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0, 1, 2]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![(0.25, 0.25), (0.25, 0.5), (0.25, 0.75)],
@@ -317,37 +200,21 @@ const GRAPH_9: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_10: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-                Vertex::new(VertexID::new(0, 2), Some(0), None),
-                Vertex::new(VertexID::new(0, 3), Some(1), None),
-                Vertex::new(VertexID::new(0, 4), Some(2), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![
-                Vertex::new(VertexID::new(1, 0), Some(0), Some(vec![0, 1, 2])),
-                Vertex::new(VertexID::new(1, 1), Some(0), Some(vec![3])),
-                Vertex::new(VertexID::new(1, 2), Some(0), Some(vec![4])),
-            ],
-        ),
-        Layer::from(
-            2,
-            vec![Vertex::new(
-                VertexID::new(2, 0),
-                Some(0),
-                Some(vec![0, 1, 2]),
-            )],
-        ),
-        Layer::from(
-            3,
-            vec![Vertex::new(VertexID::new(3, 0), None, Some(vec![0]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(1), None),
+            Vertex::new(Some(2), None),
+        ]),
+        Layer::from(vec![
+            Vertex::new(Some(0), Some(vec![0, 1, 2])),
+            Vertex::new(Some(0), Some(vec![3])),
+            Vertex::new(Some(0), Some(vec![4])),
+        ]),
+        Layer::from(vec![Vertex::new(Some(0), Some(vec![0, 1, 2]))]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![
@@ -365,51 +232,35 @@ const GRAPH_10: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
 });
 
 const GRAPH_11: LazyLock<TestGraph> = LazyLock::new(|| TestGraph {
-    graph: LayeredGraph::new(vec![
-        Layer::from(
-            0,
-            vec![
-                Vertex::new(VertexID::new(0, 0), Some(0), None),
-                Vertex::new(VertexID::new(0, 1), Some(0), None),
-                Vertex::new(VertexID::new(0, 2), Some(0), None),
-                Vertex::new(VertexID::new(0, 3), Some(0), None),
-                Vertex::new(VertexID::new(0, 4), Some(1), None),
-                Vertex::new(VertexID::new(0, 5), Some(1), None),
-                Vertex::new(VertexID::new(0, 6), Some(1), None),
-                Vertex::new(VertexID::new(0, 7), Some(1), None),
-                Vertex::new(VertexID::new(0, 8), Some(1), None),
-                Vertex::new(VertexID::new(0, 9), Some(1), None),
-                Vertex::new(VertexID::new(0, 10), Some(1), None),
-                Vertex::new(VertexID::new(0, 11), Some(2), None),
-                Vertex::new(VertexID::new(0, 12), Some(2), None),
-                Vertex::new(VertexID::new(0, 13), Some(2), None),
-                Vertex::new(VertexID::new(0, 14), Some(2), None),
-                Vertex::new(VertexID::new(0, 15), Some(2), None),
-            ],
-        ),
-        Layer::from(
-            1,
-            vec![
-                Vertex::new(VertexID::new(1, 0), Some(0), Some(vec![0, 1, 2, 3])),
-                Vertex::new(
-                    VertexID::new(1, 1),
-                    Some(0),
-                    Some(vec![4, 5, 6, 7, 8, 9, 10]),
-                ),
-                Vertex::new(VertexID::new(1, 2), Some(1), Some(vec![11, 12, 13, 14, 15])),
-            ],
-        ),
-        Layer::from(
-            2,
-            vec![
-                Vertex::new(VertexID::new(2, 0), Some(0), Some(vec![0, 1])),
-                Vertex::new(VertexID::new(2, 1), Some(0), Some(vec![2])),
-            ],
-        ),
-        Layer::from(
-            3,
-            vec![Vertex::new(VertexID::new(3, 0), None, Some(vec![0, 1]))],
-        ),
+    graph: LayeredGraph::from(vec![
+        Layer::from(vec![
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(0), None),
+            Vertex::new(Some(1), None),
+            Vertex::new(Some(1), None),
+            Vertex::new(Some(1), None),
+            Vertex::new(Some(1), None),
+            Vertex::new(Some(1), None),
+            Vertex::new(Some(1), None),
+            Vertex::new(Some(1), None),
+            Vertex::new(Some(2), None),
+            Vertex::new(Some(2), None),
+            Vertex::new(Some(2), None),
+            Vertex::new(Some(2), None),
+            Vertex::new(Some(2), None),
+        ]),
+        Layer::from(vec![
+            Vertex::new(Some(0), Some(vec![0, 1, 2, 3])),
+            Vertex::new(Some(0), Some(vec![4, 5, 6, 7, 8, 9, 10])),
+            Vertex::new(Some(1), Some(vec![11, 12, 13, 14, 15])),
+        ]),
+        Layer::from(vec![
+            Vertex::new(Some(0), Some(vec![0, 1])),
+            Vertex::new(Some(0), Some(vec![2])),
+        ]),
+        Layer::from(vec![Vertex::new(None, Some(vec![0, 1]))]),
     ]),
     sources_drains_embeddings: VertexEmbeddings::from(vec![
         vec![
@@ -451,29 +302,33 @@ pub fn combine_test_graphs(graph1: &mut TestGraph, graph2: &TestGraph) -> Option
 
     let mut new_graph = graph1.clone();
 
-    graph2.graph.layers.iter().for_each(|layer| {
-        let new_base_index = graph1.graph.layers[layer.index].vertices.len();
-        new_graph.graph.layers[layer.index]
-            .vertices
-            .extend(layer.vertices.iter().map(|vertex| {
-                let mut vertex = vertex.clone();
-                vertex.vertex_id.index += new_base_index;
-                if let Some(parent_index) = vertex.parent_index {
-                    let parent_layer_base_index =
-                        graph1.graph.layers[parent_index + 1].vertices.len();
-                    vertex.parent_index = Some(parent_index + parent_layer_base_index);
-                }
-                if let Some(children_indices) = &vertex.children_indices {
-                    let child_layer_base_index =
-                        graph1.graph.layers[layer.index - 1].vertices.len();
-                    let new_children = children_indices
-                        .iter()
-                        .map(|child| child + child_layer_base_index);
-                    vertex.children_indices = Some(new_children.collect());
-                }
-                vertex
-            }));
-    });
+    graph2
+        .graph
+        .layers
+        .iter()
+        .enumerate()
+        .for_each(|(layer_index, layer)| {
+            new_graph.graph.layers[layer_index]
+                .vertices
+                .extend(layer.vertices.iter().map(|vertex| {
+                    let mut vertex = vertex.clone();
+                    if let Some(parent_index) = vertex.parent_index {
+                        let parent_layer_base_index =
+                            graph1.graph.layers[parent_index + 1].vertices.len();
+                        vertex.parent_index = Some(parent_index + parent_layer_base_index);
+                    }
+                    if let Some(children_indices) = &vertex.children_indices {
+                        let child_layer_base_index =
+                            graph1.graph.layers[layer_index - 1].vertices.len();
+                        let new_children = children_indices
+                            .iter()
+                            .map(|child| child + child_layer_base_index)
+                            .collect();
+                        vertex.children_indices = Some(new_children);
+                    }
+                    vertex
+                }));
+        });
 
     new_graph.sources_drains_embeddings.embeddings[0]
         .extend(graph2.sources_drains_embeddings.embeddings[0].iter());

@@ -1,10 +1,8 @@
-use crate::{LayeredGraph, Vertex};
+use crate::{LayeredGraph, VertexID};
 
 impl LayeredGraph {
-    pub fn recable(&mut self, layer_index: usize, node: Vertex, target_node: Vertex) {
-        self.layers[layer_index]
-            .edges
-            .entry(node)
-            .and_modify(|e| e.1 = target_node);
+    pub fn recable(&mut self, node: &VertexID, target_node: &VertexID) {
+        self.remove_edge(&node);
+        self.add_edge(&node, &target_node);
     }
 }

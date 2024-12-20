@@ -12,46 +12,23 @@ impl VertexID {
 
 #[derive(Debug, Clone)]
 pub struct Vertex {
-    pub vertex_id: VertexID,
     pub parent_index: Option<usize>,
     pub children_indices: Option<Vec<usize>>,
 }
 
 impl Vertex {
-    pub fn new(
-        vertex_id: VertexID,
-        parent_index: Option<usize>,
-        children_indices: Option<Vec<usize>>,
-    ) -> Self {
+    pub fn new(parent_index: Option<usize>, children_indices: Option<Vec<usize>>) -> Self {
         Self {
-            vertex_id,
             parent_index,
             children_indices,
         }
     }
 
-    pub fn new_with_id(layer_index: usize, index: usize) -> Self {
-        Self {
-            vertex_id: VertexID::new(layer_index, index),
-            parent_index: None,
-            children_indices: None,
-        }
-    }
-
     pub fn new_empty() -> Self {
         Self {
-            vertex_id: VertexID::new(0, 0),
             parent_index: None,
             children_indices: None,
         }
-    }
-
-    pub fn set_index(&mut self, index: usize) {
-        self.vertex_id.index = index;
-    }
-
-    pub fn set_layer(&mut self, layer: usize) {
-        self.vertex_id.layer = layer;
     }
 
     pub fn set_parent(&mut self, parent_index: usize) {
@@ -92,53 +69,28 @@ impl Vertex {
 
 #[derive(Debug, Clone)]
 pub struct Layer {
-    pub index: usize,
     pub vertices: Vec<Vertex>,
 }
 
 impl Layer {
-    pub fn new(index: usize, size: usize) -> Self {
-        let mut vertices = Vec::with_capacity(size);
-
-        (0..size).for_each(|vertex_index| {
-            vertices.push(Vertex::new_with_id(index, vertex_index));
-        });
-        Self { index, vertices }
-    }
-
-    pub fn from(index: usize, vertices: Vec<Vertex>) -> Self {
-        let mut vertices = vertices;
-
-        let mut vertex_index = 0;
-        vertices.iter_mut().for_each(|vertex| {
-            vertex.set_layer(index);
-            vertex.set_index(vertex_index);
-            vertex_index += 1;
-        });
-
-        Self { index, vertices }
-    }
-
-    pub fn new_with_index(index: usize) -> Self {
-        Self {
-            index,
-            vertices: Vec::new(),
-        }
+    pub fn new_with_size(size: usize) -> Self {
+        let vertices = vec![Vertex::new_empty(); size];
+        Self { vertices }
     }
 
     pub fn new_empty() -> Self {
         Self {
-            index: 0,
             vertices: Vec::new(),
         }
     }
 
+    pub fn from(vertices: Vec<Vertex>) -> Self {
+        Self { vertices }
+    }
+
     pub fn add_vertex(&mut self, vertex: Vertex) -> usize {
-        // add a vertex to the layer
-        let mut vertex = vertex;
+        // add a vertex to the layer and returns the index of the vertex
         let index = self.vertices.len();
-        vertex.set_index(index);
-        vertex.set_layer(self.index);
         self.vertices.push(vertex);
         return index;
     }
@@ -147,13 +99,7 @@ impl Layer {
         // remove a vertex from the layer and returns the the old index of the vertex which was swapped with the removed vertex
         self.vertices.swap_remove(vertex.index);
 
-        let swapped_vertex = &mut self.vertices[vertex.index];
-
-        let old_index = swapped_vertex.vertex_id.index;
-
-        swapped_vertex.set_index(vertex.index);
-
-        return old_index;
+        return self.vertices.len();
     }
 }
 
@@ -163,18 +109,18 @@ pub struct LayeredGraph {
 }
 
 impl LayeredGraph {
-    pub fn new(layers: Vec<Layer>) -> Self {
-        Self { layers }
-    }
-
     pub fn new_empty() -> Self {
         Self { layers: Vec::new() }
     }
 
     pub fn new_with_size(num_layers: usize) -> Self {
         Self {
-            layers: (0..num_layers).map(|i| Layer::new_with_index(i)).collect(),
+            layers: vec![Layer::new_empty(); num_layers],
         }
+    }
+
+    pub fn from(layers: Vec<Layer>) -> Self {
+        Self { layers }
     }
 
     pub fn from_sources_drains(
@@ -185,22 +131,19 @@ impl LayeredGraph {
         // create an almost empty graph with only sources and drains
         let mut graph = LayeredGraph::new_empty();
 
-        graph.add_layer(Layer::from(0, sources));
+        graph.add_layer(Layer::from(sources));
 
-        for i in 1..num_layers - 1 {
-            graph.add_layer(Layer::new_with_index(i));
+        for _ in 1..num_layers - 1 {
+            graph.add_layer(Layer::new_empty());
         }
 
-        graph.add_layer(Layer::from(num_layers - 1, drains));
+        graph.add_layer(Layer::from(drains));
 
         return graph;
     }
 
     pub fn add_layer(&mut self, layer: Layer) {
         // add a layer to the graph
-        let mut layer = layer;
-        layer.index = self.layers.len();
-
         self.layers.push(layer);
     }
 
@@ -266,11 +209,12 @@ impl LayeredGraph {
         target_vertex.add_child(source.index);
     }
 
-    pub fn remove_edge(&mut self, source: &VertexID, target: &VertexID) {
+    pub fn remove_edge(&mut self, source: &VertexID) {
         // remove an edge from the graph
+        let target = self.get_parent(source).unwrap();
         let source_vertex = self.get_vertex_mut(source);
         source_vertex.remove_parent();
-        let target_vertex = self.get_vertex_mut(target);
+        let target_vertex = self.get_vertex_mut(&target);
         target_vertex.remove_child(source.index);
     }
 
@@ -286,12 +230,16 @@ impl LayeredGraph {
         // get the number of edges of the graph
         let number_of_layers = self.layers.len();
 
-        return self.layers.iter().fold(0, |acc, layer| {
-            if layer.index == number_of_layers - 1 {
-                return acc;
-            }
-            return acc + layer.vertices.len();
-        });
+        return self
+            .layers
+            .iter()
+            .enumerate()
+            .fold(0, |acc, (layer_index, layer)| {
+                if layer_index == number_of_layers - 1 {
+                    return acc;
+                }
+                return acc + layer.vertices.len();
+            });
     }
 
     pub fn get_vertex(&self, vertex: &VertexID) -> &Vertex {
@@ -306,10 +254,7 @@ impl LayeredGraph {
 
     pub fn get_parent(&self, vertex: &VertexID) -> Option<VertexID> {
         // get the parent of a vertex
-        let regarded_vertex = self.layers[vertex.layer]
-            .vertices
-            .get(vertex.index)
-            .unwrap();
+        let regarded_vertex = self.get_vertex(vertex);
 
         return match regarded_vertex.parent_index {
             Some(parent_index) => Some(VertexID::new(vertex.layer + 1, parent_index)),
@@ -319,10 +264,7 @@ impl LayeredGraph {
 
     pub fn get_children(&self, vertex: &VertexID) -> Option<Vec<VertexID>> {
         // get the children of a vertex
-        let regarded_vertex = self.layers[vertex.layer]
-            .vertices
-            .get(vertex.index)
-            .unwrap();
+        let regarded_vertex = self.get_vertex(vertex);
 
         return match &regarded_vertex.children_indices {
             Some(children_indices) => Some(
@@ -340,7 +282,8 @@ impl LayeredGraph {
         self.layers[0]
             .vertices
             .iter()
-            .map(|vertex| vertex.vertex_id.clone())
+            .enumerate()
+            .map(|(index, _)| VertexID::new(0, index))
             .collect()
     }
 
@@ -349,25 +292,26 @@ impl LayeredGraph {
         self.layers[self.layers.len() - 1]
             .vertices
             .iter()
-            .map(|vertex| vertex.vertex_id.clone())
+            .enumerate()
+            .map(|(index, _)| VertexID::new(self.layers.len() - 1, index))
             .collect()
     }
 
     pub fn get_vertex_layers_with_indexes(&self) -> Vec<Vec<VertexID>> {
         // get the layers of the graph
-        let mut layers = Vec::new();
-
-        self.layers.iter().for_each(|layer| {
-            layers.push(
+        return self
+            .layers
+            .iter()
+            .enumerate()
+            .map(|(layer_index, layer)| {
                 layer
                     .vertices
                     .iter()
-                    .map(|vertex| vertex.vertex_id.clone())
-                    .collect(),
-            );
-        });
-
-        return layers;
+                    .enumerate()
+                    .map(|(vertex_index, _)| VertexID::new(layer_index, vertex_index))
+                    .collect()
+            })
+            .collect();
     }
 
     pub fn get_layer_structure(&self) -> Vec<usize> {
@@ -398,10 +342,10 @@ impl LayeredGraph {
 
         edge_flows.push(vec![1; self.layers[0].vertices.len()]);
 
-        for layer in self.layers.iter().skip(1) {
+        for (layer_index, layer) in self.layers.iter().enumerate().skip(1) {
             let mut current_layer_flows = Vec::new();
 
-            if layer.index == self.layers.len() - 1 {
+            if layer_index == self.layers.len() - 1 {
                 break;
             }
 
@@ -412,7 +356,7 @@ impl LayeredGraph {
                     .unwrap()
                     .iter()
                     .fold(0, |acc, child_index| {
-                        acc + edge_flows[vertex.vertex_id.layer - 1][*child_index]
+                        acc + edge_flows[layer_index - 1][*child_index]
                     });
                 current_layer_flows.push(flow);
             });
@@ -451,10 +395,10 @@ impl LayeredGraph {
             .map(|layer| vec![0; layer.vertices.len()])
             .collect::<Vec<Vec<usize>>>();
 
-        for mut vertex in self.layers[0].vertices.iter() {
-            visited_vertices[0][vertex.vertex_id.index] = true;
+        for (vertex_index, mut vertex) in self.layers[0].vertices.iter().enumerate() {
+            visited_vertices[0][vertex_index] = true;
             let mut layer_index = 0;
-            vertices_flows[0][vertex.vertex_id.index] = 1;
+            vertices_flows[0][vertex_index] = 1;
             while vertex.parent_index.is_some() {
                 let parent_index = vertex.parent_index.unwrap();
                 vertex = &self.layers[layer_index + 1].vertices[parent_index];

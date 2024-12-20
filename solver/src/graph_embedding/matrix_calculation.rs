@@ -58,40 +58,40 @@ pub fn calculate_a_matrix(
                 edge_index += 1;
             });
         } else {
-            layer.vertices.iter().for_each(|vertex| {
-                let vertex_input_edges = connected_edges
-                    .get(&(current_vertex_index + vertex.vertex_id.index))
-                    .unwrap();
+            layer
+                .vertices
+                .iter()
+                .enumerate()
+                .for_each(|(vertex_index, vertex)| {
+                    let vertex_input_edges = connected_edges
+                        .get(&(current_vertex_index + vertex_index))
+                        .unwrap();
 
-                values.append(&mut vec![1.0; vertex_input_edges.len()]);
-                col_ptr[current_vertex_index + vertex.vertex_id.index + 1] = col_ptr
-                    [current_vertex_index + vertex.vertex_id.index]
-                    + vertex_input_edges.len()
-                    + 1;
-                col_ptr[current_vertex_index
-                    + vertex.vertex_id.index
-                    + 1
-                    + number_of_regarded_vertices] =
-                    col_ptr[current_vertex_index + vertex.vertex_id.index + 1] + num_values;
-                row_val.append(
-                    &mut vertex_input_edges
-                        .iter()
-                        .map(|x| 3 * x + 1)
-                        .collect::<Vec<usize>>(),
-                );
+                    values.append(&mut vec![1.0; vertex_input_edges.len()]);
+                    col_ptr[current_vertex_index + vertex_index + 1] =
+                        col_ptr[current_vertex_index + vertex_index] + vertex_input_edges.len() + 1;
+                    col_ptr
+                        [current_vertex_index + vertex_index + 1 + number_of_regarded_vertices] =
+                        col_ptr[current_vertex_index + vertex_index + 1] + num_values;
+                    row_val.append(
+                        &mut vertex_input_edges
+                            .iter()
+                            .map(|x| 3 * x + 1)
+                            .collect::<Vec<usize>>(),
+                    );
 
-                let parent_index = vertex.parent_index.unwrap();
+                    let parent_index = vertex.parent_index.unwrap();
 
-                values.push(-1.0);
-                row_val.push(3 * (current_edge_index + edge_index) + 1);
+                    values.push(-1.0);
+                    row_val.push(3 * (current_edge_index + edge_index) + 1);
 
-                connected_edges
-                    .entry(current_vertex_index + layer_size + parent_index)
-                    .or_insert(Vec::new())
-                    .push(current_edge_index + edge_index);
+                    connected_edges
+                        .entry(current_vertex_index + layer_size + parent_index)
+                        .or_insert(Vec::new())
+                        .push(current_edge_index + edge_index);
 
-                edge_index += 1;
-            });
+                    edge_index += 1;
+                });
 
             current_vertex_index += layer_size;
         }

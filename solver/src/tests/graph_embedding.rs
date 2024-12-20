@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::{
     embed_graph, generate_random_graph, plotting::plot_embedded_graph, tests::float_equal,
-    LayeredGraph, Options, VertexEmbedding, VertexEmbeddings,
+    LayeredGraph, Options, VertexEmbedding, VertexEmbeddings, VertexID,
 };
 
 use super::{
@@ -79,28 +79,27 @@ fn compare_with_expected_embeddings(
     ));
 }
 
-fn compare_with_generalized_weiszfeld(
+pub fn compare_with_generalized_weiszfeld(
     calculated_embeddings: &VertexEmbeddings,
     graph: &LayeredGraph,
     alpha: f64,
 ) {
     let flows = graph.calculate_edge_flows();
 
-    for layer in graph.layers.iter().skip(1) {
-        if layer.index == graph.layers.len() - 1 {
+    for (layer_index, layer) in graph.layers.iter().enumerate().skip(1) {
+        if layer_index == graph.layers.len() - 1 {
             break;
         }
-        for vertex in layer.vertices.iter() {
-            let calculated_embedding =
-                calculated_embeddings.embeddings[vertex.vertex_id.layer][vertex.vertex_id.index];
-            let children = graph.get_children(&vertex.vertex_id).unwrap();
-            let parent = graph.get_parent(&vertex.vertex_id).unwrap();
-            let mut surrounding_nodes = children.clone();
-            surrounding_nodes.push(parent);
-            let surrounding_points = surrounding_nodes
-                .iter()
-                .map(|node| calculated_embeddings.embeddings[node.layer][node.index])
-                .collect::<Vec<VertexEmbedding>>();
+
+        for (vertex_index, _) in layer.vertices.iter().enumerate() {
+            let calculated_embedding = calculated_embeddings.embeddings[layer_index][vertex_index];
+            let children = graph
+                .get_children(&VertexID::new(layer_index, vertex_index))
+                .unwrap();
+            let parent = graph
+                .get_parent(&VertexID::new(layer_index, vertex_index))
+                .unwrap();
+
             let mut surrounding_weights = children
                 .iter()
                 .map(|child| {
@@ -108,8 +107,14 @@ fn compare_with_generalized_weiszfeld(
                     return flow.powf(alpha);
                 })
                 .collect::<Vec<f64>>();
-            surrounding_weights
-                .push((flows[vertex.vertex_id.layer][vertex.vertex_id.index] as f64).powf(alpha));
+            surrounding_weights.push((flows[layer_index][vertex_index] as f64).powf(alpha));
+
+            let mut surrounding_nodes = children;
+            surrounding_nodes.push(parent);
+            let surrounding_points = surrounding_nodes
+                .iter()
+                .map(|node| calculated_embeddings.embeddings[node.layer][node.index])
+                .collect::<Vec<VertexEmbedding>>();
 
             let calculated_value = generalized_weiszfeld_value(
                 calculated_embedding,

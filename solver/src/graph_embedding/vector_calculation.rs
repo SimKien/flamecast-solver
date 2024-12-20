@@ -34,24 +34,29 @@ pub fn calculate_b_vector(
     // calculate b-vector for clarabel
     let mut b = vec![0.0; 3 * number_of_edges];
 
-    graph.layers[0].vertices.iter().for_each(|vertex| {
-        let embedding = sources_drains_embeddings.embeddings[0][vertex.vertex_id.index];
-        b[3 * vertex.vertex_id.index + 1] = embedding.0;
-        b[3 * vertex.vertex_id.index + 2] = embedding.1;
-    });
+    graph.layers[0]
+        .vertices
+        .iter()
+        .enumerate()
+        .for_each(|(vertex_index, _)| {
+            let embedding = sources_drains_embeddings.embeddings[0][vertex_index];
+            b[3 * vertex_index + 1] = embedding.0;
+            b[3 * vertex_index + 2] = embedding.1;
+        });
 
     let edge_base_index = number_of_edges - graph.layers[graph.layers.len() - 2].vertices.len();
 
     graph.layers[graph.layers.len() - 2]
         .vertices
         .iter()
-        .for_each(|vertex| {
+        .enumerate()
+        .for_each(|(vertex_index, vertex)| {
             let parent_index = vertex.parent_index.unwrap();
 
             let embedding =
                 sources_drains_embeddings.embeddings[graph.layers.len() - 1][parent_index];
-            b[3 * (edge_base_index + vertex.vertex_id.index) + 1] = -embedding.0;
-            b[3 * (edge_base_index + vertex.vertex_id.index) + 2] = -embedding.1;
+            b[3 * (edge_base_index + vertex_index) + 1] = -embedding.0;
+            b[3 * (edge_base_index + vertex_index) + 2] = -embedding.1;
         });
 
     return b;

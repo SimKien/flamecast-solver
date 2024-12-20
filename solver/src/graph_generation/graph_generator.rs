@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::{Layer, LayeredGraph, Vertex};
+use crate::{Layer, LayeredGraph};
 
 pub fn generate_random_directed_graph(num_nodes: usize, num_layers: usize) -> LayeredGraph {
     // Assertion: num_nodes > 2 * num_layers + 2
@@ -39,14 +39,9 @@ pub fn generate_random_directed_graph(num_nodes: usize, num_layers: usize) -> La
     layer_sizes.sort_by(|a, b| b.cmp(a));
 
     let mut layers = Vec::new();
-    let mut layer_index = 0;
     for size in layer_sizes {
-        let mut layer = Layer::new_with_index(layer_index);
-        (0..size).for_each(|_| {
-            layer.add_vertex(Vertex::new_empty());
-        });
+        let layer = Layer::new_with_size(size);
         layers.push(layer);
-        layer_index += 1;
     }
 
     // generate random edges between following layers
@@ -66,5 +61,5 @@ pub fn generate_random_directed_graph(num_nodes: usize, num_layers: usize) -> La
         }
     }
 
-    return LayeredGraph::new(layers);
+    return LayeredGraph::from(layers);
 }

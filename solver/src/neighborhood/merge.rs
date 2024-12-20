@@ -1,17 +1,16 @@
-use crate::{LayeredGraph, Vertex};
+use crate::{LayeredGraph, VertexID};
 
 impl LayeredGraph {
     // Merging only possible if the two nodes have the same parent
-    pub fn merge(&mut self, layer_index: usize, parent1: Vertex, parent2: Vertex) {
-        let grand_parent = self.get_parent(layer_index + 1, parent1);
-
-        self.get_children(layer_index, parent2)
+    pub fn merge(&mut self, parent1: &VertexID, parent2: &VertexID) {
+        self.get_children(parent2)
+            .unwrap()
             .iter()
-            .for_each(|&child| {
-                self.recable(layer_index, child, parent1);
+            .for_each(|child| {
+                self.recable(child, &parent1);
             });
 
-        self.remove_edge_from_layer((parent2, grand_parent), layer_index + 1);
-        self.remove_vertex_from_layer(parent2, layer_index + 1);
+        self.remove_edge(parent2);
+        self.remove_vertex(parent2);
     }
 }

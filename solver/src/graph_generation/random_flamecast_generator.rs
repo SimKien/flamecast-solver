@@ -6,6 +6,7 @@ use crate::{LayeredGraph, Vertex};
 
 type VertexSourcesMapping = HashMap<usize, Vec<usize>>;
 
+// Random because the mapping of sources to vertices and drains is random
 pub fn generate_random_flamecast_graph(
     num_layers: usize,
     capacities: &Vec<usize>,

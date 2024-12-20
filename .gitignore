@@ -17,6 +17,7 @@ Cargo.lock
 plots/
 solver/test_plots/
 solutions/
+solver/test_solutions/
 
 # RustRover
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

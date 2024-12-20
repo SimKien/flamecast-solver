@@ -11,6 +11,8 @@ pub const WEISZFELD_EPSILON: f64 = 0.0000001;
 
 #[cfg(test)]
 mod graph_embedding;
+#[cfg(test)]
+mod initial_flamecast;
 
 #[cfg(test)]
 mod util;

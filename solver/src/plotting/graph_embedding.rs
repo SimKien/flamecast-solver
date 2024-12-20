@@ -26,14 +26,13 @@ pub fn plot_embedded_graph(file_path: &str, embedded_graph: &GraphEmbedding, sho
     let embeddings = &embedded_graph.vertices_embeddings;
 
     // Draw vertices and edges for each layer
-    for layer in graph.layers.iter() {
+    for (layer_index, layer) in graph.layers.iter().enumerate() {
         // Draw edges first because they should be behind the vertices
 
-        let layer_index = layer.index;
         // Draw edges
         if layer_index != graph.layers.len() - 1 {
-            for vertex in layer.vertices.iter() {
-                let source = &embeddings.embeddings[layer_index][vertex.vertex_id.index];
+            for (vertex_index, vertex) in layer.vertices.iter().enumerate() {
+                let source = &embeddings.embeddings[layer_index][vertex_index];
                 let target = &embeddings.embeddings[layer_index + 1][vertex.parent_index.unwrap()];
 
                 root.draw(&create_edge(source, target)).unwrap();
@@ -41,9 +40,9 @@ pub fn plot_embedded_graph(file_path: &str, embedded_graph: &GraphEmbedding, sho
         }
 
         // Draw vertices
-        for vertex in layer.vertices.iter() {
+        for (vertex_index, _) in layer.vertices.iter().enumerate() {
             root.draw(&create_node(
-                &embeddings.embeddings[layer_index][vertex.vertex_id.index],
+                &embeddings.embeddings[layer_index][vertex_index],
                 vertex_colors[layer_index],
             ))
             .unwrap();

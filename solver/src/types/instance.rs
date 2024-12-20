@@ -5,7 +5,7 @@ use crate::{
 
 use super::{GraphEmbedding, VertexEmbeddings};
 
-pub const BASE_FILE_PATH: &str = "./solutions/";
+pub const FLAMECAST_BASE_FILE_PATH: &str = "./solutions/";
 
 pub struct FlamecastInstance {
     pub alpha: f64,
@@ -56,7 +56,7 @@ impl FlamecastInstance {
 
     pub fn plot_current_solution(&self, file_name: &str, show_layers: bool) {
         plot_embedded_graph(
-            format!("{}{}.png", BASE_FILE_PATH, file_name).as_str(),
+            format!("{}.png", file_name).as_str(),
             &self.current_solution,
             show_layers,
         );
@@ -64,6 +64,21 @@ impl FlamecastInstance {
 
     pub fn get_objective_function_value(&self) -> f64 {
         self.current_solution.calculate_costs(self.alpha)
+    }
+
+    pub fn embed_current_solution(&mut self, options: Options) {
+        let current_embedding = embed_directed_graph(
+            &self.current_solution.base_graph,
+            &self.sources_drains_embeddings,
+            self.alpha,
+            options,
+        );
+        self.current_solution.vertices_embeddings = current_embedding;
+    }
+
+    pub fn calculate_objective_function_value(&mut self, options: Options) -> f64 {
+        self.embed_current_solution(options);
+        self.get_objective_function_value()
     }
 
     pub fn solve(&mut self) {

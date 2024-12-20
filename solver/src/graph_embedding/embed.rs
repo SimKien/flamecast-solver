@@ -54,19 +54,20 @@ pub fn embed_directed_graph(
     let mut result = sources_drains_embeddings.clone();
 
     let mut current_vertex_index = 0;
-    for layer in graph.layers.iter().skip(1) {
-        let layer_index = layer.index;
-
+    for (layer_index, layer) in graph.layers.iter().enumerate().skip(1) {
         if layer_index == graph.layers.len() - 1 {
             break;
         }
 
-        layer.vertices.iter().for_each(|vertex| {
-            let x = solution[current_vertex_index + vertex.vertex_id.index];
-            let y = solution
-                [current_vertex_index + vertex.vertex_id.index + number_of_regarded_vertices];
-            result.embeddings[layer_index].push((x, y));
-        });
+        layer
+            .vertices
+            .iter()
+            .enumerate()
+            .for_each(|(vertex_index, _)| {
+                let x = solution[current_vertex_index + vertex_index];
+                let y = solution[current_vertex_index + vertex_index + number_of_regarded_vertices];
+                result.embeddings[layer_index].push((x, y));
+            });
 
         current_vertex_index += layer.vertices.len();
     }
@@ -103,29 +104,33 @@ fn print_informations(
         let mut max_diff = 0.0;
 
         let mut index = 0;
-        for layer in graph.layers.iter() {
-            if layer.index == graph.layers.len() - 1 {
+        for (layer_index, layer) in graph.layers.iter().enumerate() {
+            if layer_index == graph.layers.len() - 1 {
                 break;
             }
 
-            layer.vertices.iter().for_each(|vertex| {
-                let parent_index = vertex.parent_index.unwrap();
+            layer
+                .vertices
+                .iter()
+                .enumerate()
+                .for_each(|(vertex_index, vertex)| {
+                    let parent_index = vertex.parent_index.unwrap();
 
-                let source_embedding =
-                    vertex_embeddings.embeddings[layer.index][vertex.vertex_id.index];
-                let target_embedding = vertex_embeddings.embeddings[layer.index + 1][parent_index];
+                    let source_embedding = vertex_embeddings.embeddings[layer_index][vertex_index];
+                    let target_embedding =
+                        vertex_embeddings.embeddings[layer_index + 1][parent_index];
 
-                let edge_length = ((source_embedding.0 - target_embedding.0).powi(2)
-                    + (source_embedding.1 - target_embedding.1).powi(2))
-                .sqrt();
+                    let edge_length = ((source_embedding.0 - target_embedding.0).powi(2)
+                        + (source_embedding.1 - target_embedding.1).powi(2))
+                    .sqrt();
 
-                let dif = (edge_length - solution.x[solution_vertices_number + index]).abs();
-                if dif > max_diff {
-                    max_diff = dif;
-                }
+                    let dif = (edge_length - solution.x[solution_vertices_number + index]).abs();
+                    if dif > max_diff {
+                        max_diff = dif;
+                    }
 
-                index += 1;
-            });
+                    index += 1;
+                });
         }
 
         println!(
