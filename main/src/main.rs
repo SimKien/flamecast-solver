@@ -28,7 +28,7 @@ fn main() {
         flamecast_instance
             .current_solution
             .base_graph
-            .is_valid_flamecast_topology(
+            .is_valid_flamecast_topology_check_all(
                 &flamecast_instance.capacities,
                 flamecast_instance.get_number_of_sources(),
                 flamecast_instance.get_number_of_drains(),

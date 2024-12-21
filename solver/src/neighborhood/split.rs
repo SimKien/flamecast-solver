@@ -14,4 +14,14 @@ impl LayeredGraph {
             self.recable(child_vertex, &new_parent_vertex_id);
         });
     }
+
+    pub fn check_split_possible(
+        &mut self,
+        children_new_parent_vertex: &Vec<VertexID>,
+        capacities: &Vec<usize>,
+    ) -> bool {
+        //TODO: schauen ob vlt nichts kontrolliert werden muss
+
+        return true;
+    }
 }

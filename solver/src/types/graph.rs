@@ -366,7 +366,7 @@ impl LayeredGraph {
         return edge_flows;
     }
 
-    pub fn is_valid_flamecast_topology(
+    pub fn is_valid_flamecast_topology_check_all(
         &self,
         capacities: &Vec<usize>,
         number_of_sources: usize,
@@ -383,6 +383,12 @@ impl LayeredGraph {
         if self.layers[num_layers - 1].vertices.len() != number_of_drains {
             return false;
         }
+
+        return self.is_valid_flamecast_topology(capacities);
+    }
+
+    pub fn is_valid_flamecast_topology(&self, capacities: &Vec<usize>) -> bool {
+        let num_layers = self.layers.len();
 
         let mut visited_vertices = self
             .get_layer_structure()
@@ -424,6 +430,32 @@ impl LayeredGraph {
             }
         }
 
+        return true;
+    }
+
+    pub fn is_valid_flamecast_topology_check_capacities(&self, capacities: &Vec<usize>) -> bool {
+        let mut vertices_flows = self
+            .layers
+            .iter()
+            .map(|layer| vec![0; layer.vertices.len()])
+            .collect::<Vec<Vec<usize>>>();
+
+        for (vertex_index, mut vertex) in self.layers[0].vertices.iter().enumerate() {
+            let mut layer_index = 0;
+            vertices_flows[0][vertex_index] = 1;
+            while vertex.parent_index.is_some() {
+                let parent_index = vertex.parent_index.unwrap();
+                vertex = &self.layers[layer_index + 1].vertices[parent_index];
+                vertices_flows[layer_index + 1][parent_index] += 1;
+                layer_index += 1;
+            }
+        }
+
+        for (layer_flows, capacity) in vertices_flows.iter().zip(capacities.iter()) {
+            if layer_flows.iter().any(|flow| *flow > *capacity) {
+                return false;
+            }
+        }
         return true;
     }
 }

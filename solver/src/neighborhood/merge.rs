@@ -13,4 +13,19 @@ impl LayeredGraph {
         self.remove_edge(parent2);
         self.remove_vertex(parent2);
     }
+
+    pub fn check_merge_possible(
+        &self,
+        parent1: &VertexID,
+        parent2: &VertexID,
+        capacities: &Vec<usize>,
+    ) -> bool {
+        if self.get_parent(parent1) != self.get_parent(parent2) {
+            return false;
+        }
+
+        //TODO: check von parent_layer aufwärts ob kapazität erfüllt ist
+
+        return true;
+    }
 }

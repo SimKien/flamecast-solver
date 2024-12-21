@@ -3,7 +3,7 @@ use crate::{
     plotting::plot_embedded_graph, Options,
 };
 
-use super::{GraphEmbedding, VertexEmbeddings};
+use super::{FlamecastOptimization, GraphEmbedding, VertexEmbeddings};
 
 pub const FLAMECAST_BASE_FILE_PATH: &str = "./solutions/";
 
@@ -82,6 +82,7 @@ impl FlamecastInstance {
     }
 
     pub fn solve(&mut self) {
-        //TODO: Implement the solver
+        let optimization_instance = FlamecastOptimization::from_flamecast_instance(self);
+        // TODO: optimize
     }
 }

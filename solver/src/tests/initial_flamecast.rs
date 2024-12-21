@@ -6,7 +6,7 @@ fn validate_initial_flamecast_instance(instance: &FlamecastInstance, index: usiz
     assert!(instance
         .current_solution
         .base_graph
-        .is_valid_flamecast_topology(
+        .is_valid_flamecast_topology_check_all(
             &instance.capacities,
             instance.get_number_of_sources(),
             instance.get_number_of_drains(),

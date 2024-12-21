@@ -2,8 +2,10 @@ mod graph_embedding;
 mod graph_generation;
 mod neighborhood;
 mod plotting;
+mod simulated_annealing;
 mod tests;
 mod types;
+mod variable_neighborhood_change;
 
 use graph_embedding::embed_directed_graph;
 pub use graph_embedding::{Options, SearchDepth};

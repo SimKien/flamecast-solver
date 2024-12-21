@@ -1,7 +1,9 @@
 mod embedding;
+mod flamecast_instance;
 mod graph;
-mod instance;
+mod optimization;
 
 pub use embedding::*;
+pub use flamecast_instance::*;
 pub use graph::*;
-pub use instance::*;
+pub use optimization::*;
