@@ -336,6 +336,28 @@ impl LayeredGraph {
         return neighbours;
     }
 
+    pub fn calculate_vertex_flows(&self) -> Vec<Vec<usize>> {
+        // calculate the flows of the vertices of the graph, assumes a valid flamecast graph
+        let mut vertex_flows = self
+            .layers
+            .iter()
+            .map(|layer| vec![0; layer.vertices.len()])
+            .collect::<Vec<Vec<usize>>>();
+
+        for (vertex_index, mut vertex) in self.layers[0].vertices.iter().enumerate() {
+            let mut layer_index = 0;
+            vertex_flows[0][vertex_index] = 1;
+            while vertex.parent_index.is_some() {
+                let parent_index = vertex.parent_index.unwrap();
+                vertex = &self.layers[layer_index + 1].vertices[parent_index];
+                vertex_flows[layer_index + 1][parent_index] += 1;
+                layer_index += 1;
+            }
+        }
+
+        return vertex_flows;
+    }
+
     pub fn calculate_edge_flows(&self) -> Vec<Vec<usize>> {
         // calculate the flows of the edges of the graph, assumes a valid flamecast graph
         let mut edge_flows = Vec::new();
