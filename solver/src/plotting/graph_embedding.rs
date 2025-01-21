@@ -44,6 +44,7 @@ pub fn plot_embedded_graph(file_path: &str, embedded_graph: &GraphEmbedding, sho
             root.draw(&create_node(
                 &embeddings.embeddings[layer_index][vertex_index],
                 vertex_colors[layer_index],
+                vertex_index,
             ))
             .unwrap();
         }

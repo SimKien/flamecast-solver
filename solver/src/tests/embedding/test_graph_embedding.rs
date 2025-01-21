@@ -1,14 +1,16 @@
+#[cfg(test)]
 use rand::Rng;
 
+#[cfg(test)]
 use crate::{
-    embed_graph, generate_random_graph, plotting::plot_embedded_graph, tests::float_equal,
-    LayeredGraph, Options, VertexEmbedding, VertexEmbeddings, VertexID,
+    embed_graph, generate_random_graph, plotting::plot_embedded_graph, tests::{float_equal, WEISZFELD_EPSILON, embeddings_equal}, LayeredGraph, VertexEmbedding, VertexEmbeddings, VertexID,
+    EmbeddingOptions,
 };
 
-use super::{
-    embeddings_equal, EmbeddingSample, TESTGRAPHS, TESTGRAPHS_EMBEDDING_SAMPLES, WEISZFELD_EPSILON,
-};
+#[cfg(test)]
+use super::{EmbeddingSample, TESTGRAPHS, TESTGRAPHS_EMBEDDING_SAMPLES};
 
+#[cfg(test)]
 fn test_random_graph(num_nodes: usize, num_layers: usize, alpha: f64, index: usize) {
     let random_graph = generate_random_graph(num_nodes, num_layers);
 
@@ -31,11 +33,11 @@ fn test_random_graph(num_nodes: usize, num_layers: usize, alpha: f64, index: usi
         random_graph.clone(),
         &sources_drains_embeddings,
         alpha,
-        Options::default(),
+        &EmbeddingOptions::default(),
     );
 
     plot_embedded_graph(
-        format!("./test_plots/output{}.png", index).as_str(),
+        format!("./test_embedding/output{}.png", index).as_str(),
         &embedded_graph,
         true,
     );
@@ -43,6 +45,7 @@ fn test_random_graph(num_nodes: usize, num_layers: usize, alpha: f64, index: usi
     compare_with_generalized_weiszfeld(&embedded_graph.vertices_embeddings, &random_graph, alpha);
 }
 
+#[cfg(test)]
 fn test_predefined_graph(index: usize) {
     let test_graph = TESTGRAPHS[index].clone();
     let graph = test_graph.graph.clone();
@@ -53,7 +56,7 @@ fn test_predefined_graph(index: usize) {
         graph.clone(),
         sources_drains_embeddings,
         alpha,
-        Options::default(),
+        &EmbeddingOptions::default(),
     )
     .vertices_embeddings;
 
@@ -69,6 +72,7 @@ fn test_predefined_graph(index: usize) {
     }
 }
 
+#[cfg(test)]
 fn compare_with_expected_embeddings(
     calculated_embeddings: &VertexEmbeddings,
     embedding_sample: &EmbeddingSample,
@@ -79,6 +83,7 @@ fn compare_with_expected_embeddings(
     ));
 }
 
+#[cfg(test)]
 pub fn compare_with_generalized_weiszfeld(
     calculated_embeddings: &VertexEmbeddings,
     graph: &LayeredGraph,
@@ -139,6 +144,7 @@ pub fn compare_with_generalized_weiszfeld(
     }
 }
 
+#[cfg(test)]
 fn generalized_weiszfeld_value(
     start_point: VertexEmbedding,
     surrounding_points: &Vec<VertexEmbedding>,
@@ -175,6 +181,7 @@ fn generalized_weiszfeld_value(
     return current_value;
 }
 
+#[cfg(test)]
 fn objective_value(distances: &Vec<f64>, weights: &Vec<f64>) -> f64 {
     let num_points = distances.len();
     let mut objective = 0.0;

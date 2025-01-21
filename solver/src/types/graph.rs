@@ -8,6 +8,10 @@ impl VertexID {
     pub fn new(layer: usize, index: usize) -> Self {
         Self { layer, index }
     }
+
+    pub fn to_string(&self) -> String {
+        format!("({}, {})", self.layer, self.index)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -31,12 +35,16 @@ impl Vertex {
         }
     }
 
-    pub fn set_parent(&mut self, parent_index: usize) {
-        self.parent_index = Some(parent_index);
+    pub fn set_parent(&mut self, parent_index: Option<usize>) {
+        self.parent_index = parent_index;
     }
 
     pub fn remove_parent(&mut self) {
         self.parent_index = None;
+    }
+
+    pub fn set_children(&mut self, children_indices: Option<Vec<usize>>) {
+        self.children_indices = children_indices;
     }
 
     pub fn add_child(&mut self, child_index: usize) {
@@ -53,6 +61,9 @@ impl Vertex {
                     .position(|x| *x == child_index)
                     .unwrap(),
             );
+            if children_indices.is_empty() {
+                self.children_indices = None;
+            }
         }
     }
 
@@ -167,7 +178,7 @@ impl LayeredGraph {
             let children_layer = &mut first[layer_index - 1];
             children_indices.iter().for_each(|child_index| {
                 let child = &mut children_layer.vertices[*child_index];
-                child.set_parent(vertex_index);
+                child.set_parent(Some(vertex_index));
             });
         }
 
@@ -179,32 +190,78 @@ impl LayeredGraph {
         return VertexID::new(layer_index, vertex_index);
     }
 
+    pub fn add_vertex_at_position(&mut self, vertex: Vertex, vertex_id: &VertexID) {
+        // add a vertex at a specific position of the graph
+        let layer_index = vertex_id.layer;
+
+        self.add_vertex_to_layer(layer_index, vertex);
+        self.swap_vertices_position(
+            vertex_id,
+            &VertexID::new(layer_index, self.layers[layer_index].vertices.len() - 1),
+        );
+    }
+
     pub fn remove_vertex(&mut self, vertex: &VertexID) {
         // remove a vertex from the graph
-        let old_index = self.layers[vertex.layer].remove_vertex(vertex);
+        if vertex.index == self.layers[vertex.layer].vertices.len() {
+            return;
+        }
 
-        let (first, last) = self.layers.split_at_mut(vertex.layer);
+        let last_vertex_id =
+            VertexID::new(vertex.layer, self.layers[vertex.layer].vertices.len() - 1);
 
-        let swapped_vertex = &last[0].vertices[vertex.index];
+        self.swap_vertices_position(vertex, &last_vertex_id);
+        self.pop_vertex(vertex.layer);
+    }
 
-        if let Some(children_indices) = &swapped_vertex.children_indices {
-            let children_layer = &mut first[vertex.layer - 1];
-            children_indices.iter().for_each(|child_index| {
-                let child = &mut children_layer.vertices[*child_index];
-                child.set_parent(vertex.index);
+    pub fn pop_vertex(&mut self, vertex_layer: usize) -> Option<Vertex> {
+        // pops the last vertex of a layer from the graph
+        return self.layers[vertex_layer].vertices.pop();
+    }
+
+    pub fn swap_vertices_position(&mut self, vertex1: &VertexID, vertex2: &VertexID) {
+        // swap the position of two vertices in the same layer of the graph
+        if vertex1 == vertex2 {
+            return;
+        }
+
+        let vertex1_parent = self.get_parent(vertex1);
+        let vertex2_parent = self.get_parent(vertex2);
+
+        let vertex1_children = self.get_children(vertex1);
+        let vertex2_children = self.get_children(vertex2);
+
+        if let Some(vertex1_children) = vertex1_children {
+            vertex1_children.iter().for_each(|child| {
+                self.get_vertex_mut(child).set_parent(Some(vertex2.index));
             });
         }
 
-        if let Some(parent_index) = swapped_vertex.parent_index {
-            let parent = &mut last[1].vertices[parent_index];
-            parent.change_child(old_index, vertex.index);
+        if let Some(vertex2_children) = vertex2_children {
+            vertex2_children.iter().for_each(|child| {
+                self.get_vertex_mut(child).set_parent(Some(vertex1.index));
+            });
         }
+
+        if let Some(vertex1_parent) = vertex1_parent {
+            self.get_vertex_mut(&vertex1_parent)
+                .change_child(vertex1.index, vertex2.index);
+        }
+
+        if let Some(vertex2_parent) = vertex2_parent {
+            self.get_vertex_mut(&vertex2_parent)
+                .change_child(vertex2.index, vertex1.index);
+        }
+
+        self.layers[vertex1.layer]
+            .vertices
+            .swap(vertex1.index, vertex2.index);
     }
 
     pub fn add_edge(&mut self, source: &VertexID, target: &VertexID) {
         // add an edge to the graph
         let source_vertex = self.get_vertex_mut(source);
-        source_vertex.set_parent(target.index);
+        source_vertex.set_parent(Some(target.index));
         let target_vertex = self.get_vertex_mut(target);
         target_vertex.add_child(source.index);
     }

@@ -57,7 +57,7 @@ fn k_means_recursive(
     if layer_index == 0 {
         for _ in sources {
             let mut new_vertex = Vertex::new_empty();
-            new_vertex.set_parent(parent_index);
+            new_vertex.set_parent(Some(parent_index));
             graph.add_vertex_to_layer(layer_index, new_vertex);
         }
         return;
@@ -72,7 +72,7 @@ fn k_means_recursive(
     let mut new_vertices = (0..k).map(|_| Vertex::new_empty()).collect::<Vec<Vertex>>();
     new_vertices
         .iter_mut()
-        .for_each(|vertex| vertex.set_parent(parent_index));
+        .for_each(|vertex| vertex.set_parent(Some(parent_index)));
     let mut new_vertices_indexes = Vec::new();
     for vertex in new_vertices {
         new_vertices_indexes.push(graph.add_vertex_to_layer(layer_index, vertex).index);

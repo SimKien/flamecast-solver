@@ -5,14 +5,14 @@ use clarabel::solver::{
 
 use super::{
     calculate_a_matrix, calculate_b_vector, calculate_cones, calculate_p_matrix,
-    calculate_q_vector, Options,
+    calculate_q_vector, EmbeddingOptions,
 };
 
 pub fn embed_directed_graph(
     graph: &LayeredGraph,
     sources_drains_embeddings: &VertexEmbeddings,
     alpha: f64,
-    options: Options,
+    options: &EmbeddingOptions,
 ) -> VertexEmbeddings {
     // embed the graph using clarabel
     // assertions: valid flamecast graph
@@ -77,7 +77,7 @@ pub fn embed_directed_graph(
         &result,
         graph,
         number_of_regarded_vertices,
-        &options,
+        options,
         &solver.info,
         &solver.solution,
     );
@@ -89,7 +89,7 @@ fn print_informations(
     vertex_embeddings: &VertexEmbeddings,
     graph: &LayeredGraph,
     number_of_regarded_vertices: usize,
-    options: &Options,
+    options: &EmbeddingOptions,
     solver_info: &DefaultInfo<f64>,
     solution: &DefaultSolution<f64>,
 ) {

@@ -5,16 +5,18 @@ mod plotting;
 mod simulated_annealing;
 mod tests;
 mod types;
-mod variable_neighborhood_change;
+mod variable_neighborhood_search;
 
 use graph_embedding::embed_directed_graph;
-pub use graph_embedding::{Options, SearchDepth};
+pub use graph_embedding::{EmbeddingOptions, SearchDepth};
 use graph_generation::generate_random_directed_graph;
+pub use neighborhood::Neighbor;
 use plotting::plot_embedded_graph;
+pub use simulated_annealing::{CoolingSchedule, OptimizationOptions};
 pub use tests::TestGraph;
 use tests::{
     combine_test_graphs, generate_random_flamecast_instance, FlamecastTestInstance,
-    FLAMECAST_TEST_INSTANCES, TESTGRAPHS,
+    FLAMECAST_TEST_INSTANCES, NEIGHBORHOOD_TEST_INSTANCES, TESTGRAPHS,
 };
 pub use types::*;
 
@@ -65,7 +67,7 @@ pub fn embed_graph(
     graph: LayeredGraph,
     sources_drains_embeddings: &VertexEmbeddings,
     alpha: f64,
-    options: Options,
+    options: &EmbeddingOptions,
 ) -> GraphEmbedding {
     let graph_embedding = embed_directed_graph(&graph, sources_drains_embeddings, alpha, options);
     return GraphEmbedding::new(graph, graph_embedding);
@@ -89,6 +91,14 @@ pub fn get_test_flamecast_instance(index: usize) -> FlamecastTestInstance {
 
 pub fn get_test_flamecast_instances_len() -> usize {
     return FLAMECAST_TEST_INSTANCES.len();
+}
+
+pub fn get_neighborhood_test_instance(index: usize) -> FlamecastInstance {
+    return NEIGHBORHOOD_TEST_INSTANCES[index].clone();
+}
+
+pub fn get_neighborhood_test_instances_len() -> usize {
+    return NEIGHBORHOOD_TEST_INSTANCES.len();
 }
 
 pub fn combine_testing_graphs(graph1: &mut TestGraph, graph2: &TestGraph) -> Option<TestGraph> {

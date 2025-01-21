@@ -1,12 +1,14 @@
 use crate::{
-    graph_embedding::embed_directed_graph, graph_generation::generate_random_flamecast_graph,
-    plotting::plot_embedded_graph, Options,
+    graph_embedding::embed_directed_graph,
+    graph_generation::generate_random_flamecast_graph,
+    plotting::plot_embedded_graph,
+    simulated_annealing::{OptimizationOptions, SimulatedAnnealing},
+    EmbeddingOptions, GraphEmbedding, VertexEmbeddings,
 };
-
-use super::{FlamecastOptimization, GraphEmbedding, VertexEmbeddings};
 
 pub const FLAMECAST_BASE_FILE_PATH: &str = "./solutions/";
 
+#[derive(Debug, Clone)]
 pub struct FlamecastInstance {
     pub alpha: f64,
     pub num_layers: usize,
@@ -32,7 +34,7 @@ impl FlamecastInstance {
             &initial_topology,
             &sources_drains_embeddings,
             alpha,
-            Options::default(),
+            &EmbeddingOptions::default(),
         );
 
         let initial_solution = GraphEmbedding::new(initial_topology, initial_embedding);
@@ -54,19 +56,15 @@ impl FlamecastInstance {
         self.sources_drains_embeddings.embeddings[self.num_layers - 1].len()
     }
 
-    pub fn plot_current_solution(&self, file_name: &str, show_layers: bool) {
-        plot_embedded_graph(
-            format!("{}.png", file_name).as_str(),
-            &self.current_solution,
-            show_layers,
-        );
+    pub fn plot_current_solution(&self, file_path: &str, show_layers: bool) {
+        plot_embedded_graph(file_path, &self.current_solution, show_layers);
     }
 
     pub fn get_objective_function_value(&self) -> f64 {
         self.current_solution.calculate_costs(self.alpha)
     }
 
-    pub fn embed_current_solution(&mut self, options: Options) {
+    pub fn embed_current_solution(&mut self, options: &EmbeddingOptions) {
         let current_embedding = embed_directed_graph(
             &self.current_solution.base_graph,
             &self.sources_drains_embeddings,
@@ -76,13 +74,14 @@ impl FlamecastInstance {
         self.current_solution.vertices_embeddings = current_embedding;
     }
 
-    pub fn calculate_objective_function_value(&mut self, options: Options) -> f64 {
+    pub fn calculate_objective_function_value(&mut self, options: &EmbeddingOptions) -> f64 {
         self.embed_current_solution(options);
         self.get_objective_function_value()
     }
 
-    pub fn solve(&mut self) {
-        let optimization_instance = FlamecastOptimization::from_flamecast_instance(self);
-        // TODO: optimize
+    pub fn solve(&mut self, options: OptimizationOptions) -> f64 {
+        let mut optimization_instance = SimulatedAnnealing::from_flamecast_instance(self, options);
+
+        return optimization_instance.solve();
     }
 }

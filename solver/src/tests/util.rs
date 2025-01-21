@@ -1,4 +1,4 @@
-use crate::VertexEmbeddings;
+use crate::{Vertex, VertexEmbeddings};
 
 use super::EPSILON;
 
@@ -34,4 +34,37 @@ pub fn embeddings_equal(
 
 pub fn float_equal(a: f64, b: f64) -> bool {
     (a - b).abs() < EPSILON
+}
+
+pub fn vertices_equal(vertex1: &Vertex, vertex2: &Vertex) -> bool {
+    if (vertex1.children_indices.is_none() && vertex2.children_indices.is_some())
+        || (vertex1.children_indices.is_some() && vertex2.children_indices.is_none())
+        || (vertex1.parent_index.is_none() && vertex2.parent_index.is_some())
+        || (vertex1.parent_index.is_some() && vertex2.parent_index.is_none())
+    {
+        return false;
+    }
+
+    if let Some(children1) = vertex1.children_indices.as_ref() {
+        let children2 = vertex2.children_indices.as_ref().unwrap();
+
+        if children1.len() != children2.len() {
+            return false;
+        }
+
+        for child1 in children1.iter() {
+            if !children2.contains(child1) {
+                return false;
+            }
+        }
+    }
+
+    if let Some(parent1) = vertex1.parent_index.as_ref() {
+        let parent2 = vertex2.parent_index.as_ref().unwrap();
+        if parent1 != parent2 {
+            return false;
+        }
+    }
+
+    return true;
 }

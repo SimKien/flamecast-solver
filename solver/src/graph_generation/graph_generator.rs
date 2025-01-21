@@ -51,12 +51,12 @@ pub fn generate_random_directed_graph(num_nodes: usize, num_layers: usize) -> La
         let layer1 = &mut first[layer_index];
         let layer2 = &mut last[0];
         for i in 0..layer2.vertices.len() {
-            layer1.vertices[i].set_parent(i);
+            layer1.vertices[i].set_parent(Some(i));
             layer2.vertices[i].add_child(i);
         }
         for i in layer2.vertices.len()..layer1.vertices.len() {
             let random_vertex = rng.gen_range(0..layer2.vertices.len());
-            layer1.vertices[i].set_parent(random_vertex);
+            layer1.vertices[i].set_parent(Some(random_vertex));
             layer2.vertices[random_vertex].add_child(i);
         }
     }

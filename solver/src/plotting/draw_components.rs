@@ -10,6 +10,7 @@ use super::{convert_vertex_to_i32, NODE_RADIUS};
 pub fn create_node(
     embedded_vertex: &VertexEmbedding,
     color: RGBColor,
+    index: usize,
 ) -> plotters::element::ComposedElement<
     (i32, i32),
     BitMapBackend,
@@ -21,7 +22,7 @@ pub fn create_node(
     return EmptyElement::at(coordinates)
         + Circle::new((0, 0), NODE_RADIUS, ShapeStyle::from(color).filled())
         + Text::new(
-            "".to_string(),
+            format!("{}", index),
             (2 * NODE_RADIUS, 0),
             ("sans-serif", 3 * NODE_RADIUS).into_font(),
         );

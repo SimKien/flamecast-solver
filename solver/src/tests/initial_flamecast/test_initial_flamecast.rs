@@ -1,7 +1,10 @@
-use crate::{tests::graph_embedding::compare_with_generalized_weiszfeld, FlamecastInstance};
+#[cfg(test)]
+use crate::{tests::embedding::compare_with_generalized_weiszfeld, FlamecastInstance};
 
+#[cfg(test)]
 use super::{generate_random_flamecast_instance, FLAMECAST_TEST_INSTANCES};
 
+#[cfg(test)]
 fn validate_initial_flamecast_instance(instance: &FlamecastInstance, index: usize) {
     assert!(instance
         .current_solution
@@ -19,7 +22,7 @@ fn validate_initial_flamecast_instance(instance: &FlamecastInstance, index: usiz
         instance.alpha,
     );
 
-    instance.plot_current_solution(format!("./test_solutions/test{}", index).as_str(), true);
+    instance.plot_current_solution(format!("./test_initial_flamecast/test{}.png", index).as_str(), true);
 }
 
 #[test]

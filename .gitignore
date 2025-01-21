@@ -15,9 +15,10 @@ Cargo.lock
 
 # plots of graphs
 plots/
-solver/test_plots/
+solver/test_embedding/
 solutions/
-solver/test_solutions/
+solver/test_initial_flamecast/
+solver/test_neighbor/
 
 # RustRover
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

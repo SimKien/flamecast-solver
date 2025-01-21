@@ -1,9 +1,9 @@
 mod embedding;
-mod flamecast_instance;
+mod flamecast;
 mod graph;
-mod optimization;
+mod neighbor_loader;
 
 pub use embedding::*;
-pub use flamecast_instance::*;
+pub use flamecast::*;
 pub use graph::*;
-pub use optimization::*;
+pub use neighbor_loader::*;

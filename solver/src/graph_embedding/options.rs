@@ -7,7 +7,7 @@ pub enum SearchDepth {
 }
 
 #[derive(Debug, Clone)]
-pub struct Options {
+pub struct EmbeddingOptions {
     pub print_embedding_infos: bool,
     pub search_depth: SearchDepth,
     pub time_limit: f64,
@@ -15,9 +15,9 @@ pub struct Options {
     pub verbose: bool,
 }
 
-impl Default for Options {
+impl Default for EmbeddingOptions {
     fn default() -> Self {
-        Options {
+        EmbeddingOptions {
             print_embedding_infos: true,
             search_depth: SearchDepth::Middle,
             time_limit: f64::INFINITY,
@@ -27,7 +27,7 @@ impl Default for Options {
     }
 }
 
-impl Options {
+impl EmbeddingOptions {
     pub fn new(
         print_embedding_infos: bool,
         search_depth: SearchDepth,
@@ -35,7 +35,7 @@ impl Options {
         show_calculated_actual_edge_length_diff: bool,
         verbose: bool,
     ) -> Self {
-        Options {
+        EmbeddingOptions {
             print_embedding_infos,
             search_depth,
             time_limit,
