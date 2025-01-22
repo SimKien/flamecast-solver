@@ -20,7 +20,7 @@ solutions/
 solver/test_initial_flamecast/
 solver/test_neighbor/
 
-solver_test/*/*
+solver_test/
 
 # RustRover
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
