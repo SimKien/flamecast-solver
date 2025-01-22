@@ -1,6 +1,10 @@
+use chrono::TimeDelta;
 use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
 
-use crate::{neighborhood::Neighbor, EmbeddingOptions, FlamecastInstance};
+use crate::{
+    neighborhood::{Neighbor, NeighborCost},
+    EmbeddingOptions, FlamecastInstance,
+};
 
 use super::{neighborhood_change_probability, CoolingSchedule, OptimizationOptions};
 
@@ -42,11 +46,16 @@ impl<'a> SimulatedAnnealing<'a> {
         }
     }
 
-    pub fn get_candidate_neighbor(&mut self) -> Neighbor {
-        let mut candidate_neighbors = self
+    pub fn get_candidate_neighbors_cost(&mut self) -> Vec<NeighborCost> {
+        return self
             .flamecast_instance
             .get_candidate_neighbors_cost(&self.neighbor_test_options);
+    }
 
+    pub fn choose_candidate_neighbor(
+        &mut self,
+        candidate_neighbors: &mut Vec<NeighborCost>,
+    ) -> Neighbor {
         let current_objective_value = self.current_objective_value;
         candidate_neighbors.iter_mut().for_each(|neighbor_cost| {
             //e^(CHOOSE_NEIGHBOR_PROBABILITY_SCALE * ((current_objective_value - neighbor_cost) / current_objective_value))
@@ -102,9 +111,29 @@ impl<'a> SimulatedAnnealing<'a> {
         return true;
     }
 
-    pub fn solve(&mut self) -> f64 {
+    pub fn solve<T: std::io::Write>(&mut self, buf: &mut T) -> f64 {
+        let initial_objective_value = self.current_objective_value;
+
+        let start_time = chrono::Utc::now();
+        let mut last_time = start_time.clone();
+
+        if self.verbose {
+            writeln!(buf, "Starting Simulated Annealing...").unwrap();
+            writeln!(buf, "Initial Objective Value: {}", initial_objective_value).unwrap();
+            writeln!(buf, "Initial Temperature: {}", self.initial_temperature).unwrap();
+            writeln!(
+                buf,
+                "Cooling Schedule: {}",
+                self.cooling_schedule.to_string()
+            )
+            .unwrap();
+            writeln!(buf, "Max Iterations: {}", self.max_iterations).unwrap();
+        }
+
         while self.iteration < self.max_iterations {
-            let possible_neighbor = self.get_candidate_neighbor();
+            let mut candidate_neighbors = self.get_candidate_neighbors_cost();
+
+            let possible_neighbor = self.choose_candidate_neighbor(&mut candidate_neighbors);
             let neighbor_cost = self
                 .flamecast_instance
                 .get_neighbor_cost(&possible_neighbor, &self.neighbor_cost_options);
@@ -112,14 +141,30 @@ impl<'a> SimulatedAnnealing<'a> {
             let changed = self.neighbor_change(neighbor_cost, &possible_neighbor);
 
             if self.verbose {
-                println!("Iteraion: {}", self.iteration);
-                println!("Possible Neighbor: {}", possible_neighbor.to_string());
-                println!("Current Objective Value: {}", self.current_objective_value);
-                println!("Neighbor Objective Value: {}", neighbor_cost);
+                writeln!(buf, "Iteraion: {}", self.iteration).unwrap();
+                writeln!(
+                    buf,
+                    "Number of Candidate Neighbors: {}",
+                    candidate_neighbors.len()
+                )
+                .unwrap();
+                writeln!(
+                    buf,
+                    "Chosen candidate Neighbor: {}",
+                    possible_neighbor.to_string()
+                )
+                .unwrap();
+                writeln!(
+                    buf,
+                    "Current Objective Value: {}",
+                    self.current_objective_value
+                )
+                .unwrap();
+                writeln!(buf, "Neighbor Objective Value: {}", neighbor_cost).unwrap();
                 let temperature = self
                     .cooling_schedule
                     .get_temperature(self.initial_temperature, self.iteration);
-                println!("Temperature: {}", temperature);
+                writeln!(buf, "Temperature: {}", temperature).unwrap();
                 let acceptance_probability = if neighbor_cost < self.current_objective_value {
                     1.0
                 } else {
@@ -129,13 +174,29 @@ impl<'a> SimulatedAnnealing<'a> {
                         temperature,
                     )
                 };
-                println!("Acceptance Probability: {}", acceptance_probability);
+                writeln!(buf, "Acceptance Probability: {}", acceptance_probability).unwrap();
 
                 if changed {
-                    println!("Solution Changed With Neighbor");
+                    writeln!(buf, "Solution Changed With Neighbor").unwrap();
                 } else {
-                    println!("Solution Not Changed With Neighbor");
+                    writeln!(buf, "Solution Not Changed With Neighbor").unwrap();
                 }
+
+                let current_time = chrono::Utc::now();
+                let elapsed_time = current_time.signed_duration_since(last_time);
+                writeln!(
+                    buf,
+                    "Elapsed Time For Current Step: {}",
+                    get_time_diff_pretty(elapsed_time)
+                )
+                .unwrap();
+                last_time = current_time;
+            }
+
+            if changed {
+                self.flamecast_instance
+                    .accepted_neighbors
+                    .push(possible_neighbor);
             }
 
             self.iteration += 1;
@@ -145,6 +206,66 @@ impl<'a> SimulatedAnnealing<'a> {
             .flamecast_instance
             .calculate_objective_function_value(&self.final_cost_options);
 
+        if self.verbose {
+            writeln!(buf, "Simulated Annealing Finished").unwrap();
+            writeln!(buf, "Initial Objective Value: {}", initial_objective_value).unwrap();
+            writeln!(
+                buf,
+                "Final Objective Value: {}",
+                self.current_objective_value
+            )
+            .unwrap();
+            writeln!(
+                buf,
+                "Final Temperature: {}",
+                self.cooling_schedule
+                    .get_temperature(self.initial_temperature, self.iteration)
+            )
+            .unwrap();
+            writeln!(
+                buf,
+                "Solution Quality Change: {}",
+                self.current_objective_value - initial_objective_value
+            )
+            .unwrap();
+
+            let end_time = chrono::Utc::now();
+            let elapsed_time = end_time.signed_duration_since(start_time);
+            writeln!(
+                buf,
+                "Total Time Needed: {}",
+                get_time_diff_pretty(elapsed_time)
+            )
+            .unwrap();
+        }
+
         return self.current_objective_value;
     }
+}
+
+fn get_time_diff_pretty(diff: TimeDelta) -> String {
+    let num_millis = diff.num_milliseconds() % 1_000;
+    let num_seconds = diff.num_seconds() % 60;
+    let num_minutes = (diff.num_seconds() / 60) % 60;
+    let num_hours = diff.num_seconds() / 3600;
+    let result = if diff.num_nanoseconds().is_some() {
+        let num_nano = diff.num_nanoseconds().unwrap() % 1_000;
+        let num_micro = diff.num_microseconds().unwrap() % 1_000;
+        format!(
+            "{}h {}min {}s {}ms {}us {}ns",
+            num_hours, num_minutes, num_seconds, num_millis, num_micro, num_nano
+        )
+    } else if diff.num_microseconds().is_some() {
+        let num_micro = diff.num_microseconds().unwrap() % 1_000;
+        format!(
+            "{}h {}min {}s {}ms {}us",
+            num_hours, num_minutes, num_seconds, num_millis, num_micro
+        )
+    } else {
+        format!(
+            "{}h {}min {}s {}ms",
+            num_hours, num_minutes, num_seconds, num_millis
+        )
+    };
+    return result;
 }

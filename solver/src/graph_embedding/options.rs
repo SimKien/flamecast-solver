@@ -18,7 +18,7 @@ pub struct EmbeddingOptions {
 impl Default for EmbeddingOptions {
     fn default() -> Self {
         EmbeddingOptions {
-            print_embedding_infos: true,
+            print_embedding_infos: false,
             search_depth: SearchDepth::Middle,
             time_limit: f64::INFINITY,
             show_calculated_actual_edge_length_diff: false,

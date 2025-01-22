@@ -6,12 +6,9 @@ use rand::{seq::SliceRandom, thread_rng};
 
 use crate::{GraphEmbedding, LayeredGraph};
 
-use super::{create_edge, create_node, DISTINCT_COLORS, NUM_DISTINCT_COLORS};
-
-pub const ROOT_WIDTH: u32 = 1000;
-pub const ROOT_HEIGHT: u32 = 1000;
-
-pub const NODE_RADIUS: i32 = 6;
+use super::{
+    create_edge, create_node, DISTINCT_COLORS, NUM_DISTINCT_COLORS, ROOT_HEIGHT, ROOT_WIDTH,
+};
 
 pub fn plot_embedded_graph(file_path: &str, embedded_graph: &GraphEmbedding, show_layers: bool) {
     let root = BitMapBackend::new(file_path, (ROOT_WIDTH, ROOT_HEIGHT)).into_drawing_area();

@@ -1,26 +1,33 @@
-use solver::{
-    generate_flamecast_instance, generate_random_flamecast_test_instance, EmbeddingOptions,
-    OptimizationOptions, SearchDepth,
-};
+use solver_test::{create_testing_instances, run_solver_tests};
+
+mod solver_test;
 
 fn main() {
-    let embed_options =
-        EmbeddingOptions::new(false, SearchDepth::Middle, f64::INFINITY, false, false);
+    let args = std::env::args().collect::<Vec<String>>();
 
-    let flamecast_test_instance = generate_random_flamecast_test_instance(6, 10, 3, true);
-    let mut flamecast_instance = generate_flamecast_instance(
-        flamecast_test_instance.alpha,
-        flamecast_test_instance.num_layers,
-        flamecast_test_instance.capacities,
-        flamecast_test_instance.sources_drains_embeddings,
-    );
+    let num = num_cpus::get();
+    println!("Number of available threads: {}", num);
 
-    let value = flamecast_instance.calculate_objective_function_value(&embed_options);
-    flamecast_instance.plot_current_solution("./solutions/initial.png", true);
-    println!("Initial Objective Function Value: {}", value);
+    if args.len() > 3 || args.len() < 2 {
+        println!("Usage: cargo run create_testing_instances");
+        println!("Usage: cargo run run_tests <num_threads>");
+        return;
+    }
 
-    let result = flamecast_instance.solve(OptimizationOptions::default());
-    flamecast_instance.plot_current_solution("./solutions/result.png", true);
-    println!("Initial Objective Function Value: {}", value);
-    println!("Result: {}", result);
+    if args.len() == 2 && args[1] == "create_testing_instances" {
+        println!("Creating testing instances...");
+        create_testing_instances();
+    } else if args[1] == "run_tests" {
+        let num_threads = if args.len() == 3 {
+            args[2].parse::<usize>().unwrap()
+        } else {
+            num
+        };
+        println!("Running tests with {} threads...", num_threads);
+        run_solver_tests(num_threads);
+    } else {
+        println!("Usage: cargo run create_testing_instances");
+        println!("Usage: cargo run run_tests <num_threads>");
+        return;
+    }
 }

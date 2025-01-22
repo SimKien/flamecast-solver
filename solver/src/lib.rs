@@ -13,11 +13,11 @@ use graph_generation::generate_random_directed_graph;
 pub use neighborhood::Neighbor;
 use plotting::plot_embedded_graph;
 pub use simulated_annealing::{CoolingSchedule, OptimizationOptions};
-pub use tests::TestGraph;
 use tests::{
-    combine_test_graphs, generate_random_flamecast_instance, FlamecastTestInstance,
-    FLAMECAST_TEST_INSTANCES, NEIGHBORHOOD_TEST_INSTANCES, TESTGRAPHS,
+    combine_test_graphs, generate_random_flamecast_instance, FLAMECAST_TEST_INSTANCES,
+    NEIGHBORHOOD_TEST_INSTANCES, TESTGRAPHS,
 };
+pub use tests::{FlamecastTestInstance, TestGraph};
 pub use types::*;
 
 pub fn hello_world() {

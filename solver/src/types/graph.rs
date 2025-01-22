@@ -1,4 +1,6 @@
-#[derive(Debug, Clone, PartialEq, Eq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VertexID {
     pub layer: usize,
     pub index: usize,
@@ -14,7 +16,7 @@ impl VertexID {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Vertex {
     pub parent_index: Option<usize>,
     pub children_indices: Option<Vec<usize>>,
@@ -78,7 +80,7 @@ impl Vertex {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Layer {
     pub vertices: Vec<Vertex>,
 }
@@ -114,7 +116,7 @@ impl Layer {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LayeredGraph {
     pub layers: Vec<Layer>,
 }

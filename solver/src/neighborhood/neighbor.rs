@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use crate::VertexID;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Neighbor {
     Recable(VertexID, VertexID),
     Swap(VertexID, VertexID),

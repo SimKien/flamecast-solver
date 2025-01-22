@@ -43,6 +43,7 @@ const NEIGHBORHOOD_TEST_INSTANCE1: LazyLock<FlamecastInstance> =
             ]),
             VertexEmbeddings::new(),
         ),
+        accepted_neighbors: vec![],
     });
 
 pub const NEIGHBORHOOD_TEST_INSTANCES: [LazyLock<FlamecastInstance>; 1] =

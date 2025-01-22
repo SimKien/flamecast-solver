@@ -1,20 +1,23 @@
+use serde::{Deserialize, Serialize};
+
 use crate::{
     graph_embedding::embed_directed_graph,
     graph_generation::generate_random_flamecast_graph,
     plotting::plot_embedded_graph,
     simulated_annealing::{OptimizationOptions, SimulatedAnnealing},
-    EmbeddingOptions, GraphEmbedding, VertexEmbeddings,
+    EmbeddingOptions, GraphEmbedding, Neighbor, VertexEmbeddings,
 };
 
 pub const FLAMECAST_BASE_FILE_PATH: &str = "./solutions/";
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FlamecastInstance {
     pub alpha: f64,
     pub num_layers: usize,
     pub capacities: Vec<usize>,
     pub sources_drains_embeddings: VertexEmbeddings,
     pub current_solution: GraphEmbedding,
+    pub accepted_neighbors: Vec<Neighbor>,
 }
 
 impl FlamecastInstance {
@@ -45,6 +48,7 @@ impl FlamecastInstance {
             capacities,
             sources_drains_embeddings,
             current_solution: initial_solution,
+            accepted_neighbors: Vec::new(),
         }
     }
 
@@ -79,9 +83,9 @@ impl FlamecastInstance {
         self.get_objective_function_value()
     }
 
-    pub fn solve(&mut self, options: OptimizationOptions) -> f64 {
+    pub fn solve<T: std::io::Write>(&mut self, options: OptimizationOptions, buf: &mut T) -> f64 {
         let mut optimization_instance = SimulatedAnnealing::from_flamecast_instance(self, options);
 
-        return optimization_instance.solve();
+        return optimization_instance.solve(buf);
     }
 }

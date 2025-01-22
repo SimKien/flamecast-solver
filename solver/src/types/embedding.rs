@@ -1,8 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 use super::LayeredGraph;
 
 pub type VertexEmbedding = (f64, f64); // (x-coordinate, y-coordinate) of a vertex
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VertexEmbeddings {
     pub embeddings: Vec<Vec<VertexEmbedding>>,
 }
@@ -25,7 +27,7 @@ impl VertexEmbeddings {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphEmbedding {
     pub base_graph: LayeredGraph,
     pub vertices_embeddings: VertexEmbeddings,

@@ -1,15 +1,22 @@
 use std::sync::LazyLock;
 
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
-use crate::VertexEmbeddings;
+use crate::{plotting::plot_flamecast_test_instance, VertexEmbeddings};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FlamecastTestInstance {
     pub alpha: f64,
     pub num_layers: usize,
     pub capacities: Vec<usize>,
     pub sources_drains_embeddings: VertexEmbeddings,
+}
+
+impl FlamecastTestInstance {
+    pub fn plot_instance(&self, file_path: &str) {
+        plot_flamecast_test_instance(self, file_path);
+    }
 }
 
 const FLAMECAST_TEST_INSTANCE1: LazyLock<FlamecastTestInstance> =
