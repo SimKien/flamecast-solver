@@ -1,8 +1,8 @@
-use kmeans::{EuclideanDistance, KMeans, KMeansConfig};
+use clustering::kmeans;
 
 use crate::{
     neighborhood::{Neighbor, NeighborCost},
-    NeighborLoader, EmbeddingOptions, VertexEmbeddings, VertexID,
+    EmbeddingOptions, NeighborLoader, VertexEmbeddings, VertexID,
 };
 
 use super::FlamecastInstance;
@@ -190,25 +190,21 @@ fn cluster_children(
     // Use kmeans to cluster children into two clusters
     let sample_dimension = 2;
     let max_iter = 40;
-    let mut samples = vec![0.0; sample_dimension * children.len()];
+    let mut samples = vec![vec![0.0; sample_dimension]; children.len()];
 
     children.iter().enumerate().for_each(|(i, child)| {
-        samples[2 * i] = embeddings.embeddings[child.layer][child.index].0;
-        samples[2 * i + 1] = embeddings.embeddings[child.layer][child.index].1;
+        samples[i] = vec![
+            embeddings.embeddings[child.layer][child.index].0,
+            embeddings.embeddings[child.layer][child.index].1,
+        ];
     });
 
-    let kmeans: KMeans<f64, 1, EuclideanDistance> =
-        KMeans::new(samples, children.len(), sample_dimension, EuclideanDistance);
-    let result = kmeans.kmeans_lloyd(
-        2,
-        max_iter,
-        KMeans::init_kmeanplusplus,
-        &KMeansConfig::default(),
-    );
+    let result = kmeans(2, &samples, max_iter);
+
     let mut cluster1 = Vec::new();
     let mut cluster2 = Vec::new();
     for (i, child) in children.iter().enumerate() {
-        if result.assignments[i] == 0 {
+        if result.membership[i] == 0 {
             cluster1.push(child.clone());
         } else {
             cluster2.push(child.clone());

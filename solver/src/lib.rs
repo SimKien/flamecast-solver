@@ -11,7 +11,8 @@ use graph_embedding::embed_directed_graph;
 pub use graph_embedding::{EmbeddingOptions, SearchDepth};
 use graph_generation::generate_random_directed_graph;
 pub use neighborhood::Neighbor;
-use plotting::plot_embedded_graph;
+pub use plotting::PlottingVertices;
+use plotting::{plot_embedded_graph, plot_vertices_with_colors};
 pub use simulated_annealing::{CoolingSchedule, OptimizationOptions};
 use tests::{
     combine_test_graphs, generate_random_flamecast_instance, FLAMECAST_TEST_INSTANCES,
@@ -51,18 +52,6 @@ pub fn generate_flamecast_instance(
     return FlamecastInstance::new(alpha, num_layers, capacities, sources_drains_embeddings);
 }
 
-pub fn get_sources_indexes(graph: &LayeredGraph) -> Vec<VertexID> {
-    return graph.get_sources_indexes();
-}
-
-pub fn get_drains_indexes(graph: &LayeredGraph) -> Vec<VertexID> {
-    return graph.get_drains_indexes();
-}
-
-pub fn get_layers_with_indexes(graph: &LayeredGraph) -> Vec<Vec<VertexID>> {
-    return graph.get_vertex_layers_with_indexes();
-}
-
 pub fn embed_graph(
     graph: LayeredGraph,
     sources_drains_embeddings: &VertexEmbeddings,
@@ -77,12 +66,20 @@ pub fn plot_graph(file_path: &str, embedded_graph: &GraphEmbedding, show_layers:
     plot_embedded_graph(file_path, embedded_graph, show_layers);
 }
 
+pub fn plot_vertices(file_path: &str, plotting_vertices: Vec<PlottingVertices>) {
+    plot_vertices_with_colors(file_path, &plotting_vertices);
+}
+
 pub fn get_test_graph(index: usize) -> TestGraph {
     return TESTGRAPHS[index].clone();
 }
 
 pub fn get_test_graphs_len() -> usize {
     return TESTGRAPHS.len();
+}
+
+pub fn combine_testing_graphs(graph1: &mut TestGraph, graph2: &TestGraph) -> Option<TestGraph> {
+    return combine_test_graphs(graph1, graph2);
 }
 
 pub fn get_test_flamecast_instance(index: usize) -> FlamecastTestInstance {
@@ -99,8 +96,4 @@ pub fn get_neighborhood_test_instance(index: usize) -> FlamecastInstance {
 
 pub fn get_neighborhood_test_instances_len() -> usize {
     return NEIGHBORHOOD_TEST_INSTANCES.len();
-}
-
-pub fn combine_testing_graphs(graph1: &mut TestGraph, graph2: &TestGraph) -> Option<TestGraph> {
-    return combine_test_graphs(graph1, graph2);
 }

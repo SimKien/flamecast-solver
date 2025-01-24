@@ -1,9 +1,9 @@
-use std::{
-    fs,
-    io::Write,
-    sync::{Arc, Mutex},
-};
+use std::{fs, io::Write};
 
+use rayon::{
+    iter::{IntoParallelRefIterator, ParallelIterator},
+    ThreadPoolBuilder,
+};
 use solver::{
     generate_flamecast_instance, EmbeddingOptions, FlamecastTestInstance, OptimizationOptions,
 };
@@ -34,107 +34,75 @@ impl ProcessingInstance {
     }
 }
 
-#[derive(Debug)]
-pub struct ProcessingState {
-    processing_instances: Vec<ProcessingInstance>,
-    current_index: usize,
-}
-
-impl ProcessingState {
-    pub fn new(processing_instances: Vec<ProcessingInstance>) -> Self {
-        Self {
-            processing_instances,
-            current_index: 0,
-        }
-    }
-}
-
 pub fn run_solver_tests(num_threads: usize) {
-    let test_optimization_instances = get_processing_instances();
+    ThreadPoolBuilder::new()
+        .num_threads(num_threads)
+        .build_global()
+        .unwrap();
 
-    let processing_state = Arc::new(Mutex::new(ProcessingState::new(
-        test_optimization_instances,
-    )));
+    let test_processing_instances = get_processing_instances();
 
-    let mut threads = Vec::new();
-
-    for index in 0..num_threads {
-        let processing_state = Arc::clone(&processing_state);
-        let thread = std::thread::spawn(move || process_thread(processing_state, index));
-
-        threads.push(thread);
-    }
-
-    for thread in threads {
-        thread.join().unwrap();
-    }
+    test_processing_instances
+        .par_iter()
+        .for_each(|processing_instance| {
+            solve_processing_instance(processing_instance);
+        });
 
     println!("Finished processing all instances");
     println!("All threads finished");
 }
 
-fn process_thread(processing_state: Arc<Mutex<ProcessingState>>, thread_index: usize) {
-    loop {
-        let mut state = processing_state.lock().unwrap();
-        if state.current_index >= state.processing_instances.len() {
-            println!("Thread {} finished", thread_index);
-            break;
-        }
+fn solve_processing_instance(processing_instance: &ProcessingInstance) {
+    let instance_index = processing_instance.instance_index;
+    let processing_index = processing_instance.optimization_index;
+    let current_index = instance_index * OPTIMIZATION_OPTIONS.len() + processing_index;
+    let base_path = format!(
+        "./solver_test/instance{}/{}",
+        instance_index, processing_index
+    );
 
-        let current_index = state.current_index;
-        state.current_index += 1;
+    let mut instance = generate_flamecast_instance(
+        processing_instance.instance.alpha,
+        processing_instance.instance.num_layers,
+        processing_instance.instance.capacities.clone(),
+        processing_instance
+            .instance
+            .sources_drains_embeddings
+            .clone(),
+    );
 
-        let processing_instance = state.processing_instances[current_index].clone();
+    instance.plot_current_solution(format!("{}initial_solution.png", base_path).as_str(), true);
+    fs::write(
+        format!("{}initial_solution.json", base_path),
+        serde_json::to_string_pretty(&instance.current_solution).unwrap(),
+    )
+    .unwrap();
 
-        drop(state);
+    println!("Start processing instance {}", current_index);
 
-        let instance_index = processing_instance.instance_index;
-        let optimization_index = processing_instance.optimization_index;
-        let base_path = format!(
-            "./solver_test/instance{}/{}",
-            instance_index, optimization_index
-        );
+    let mut log_file = fs::File::create(format!("{}log.txt", base_path)).unwrap();
 
-        let mut instance = generate_flamecast_instance(
-            processing_instance.instance.alpha,
-            processing_instance.instance.num_layers,
-            processing_instance.instance.capacities,
-            processing_instance
-                .instance
-                .sources_drains_embeddings
-                .clone(),
-        );
+    instance.solve(
+        processing_instance.optimization_option.clone(),
+        &mut log_file,
+    );
 
-        instance.plot_current_solution(format!("{}initial_solution.png", base_path).as_str(), true);
-        fs::write(
-            format!("{}initial_solution.json", base_path),
-            serde_json::to_string_pretty(&instance.current_solution).unwrap(),
-        )
-        .unwrap();
+    log_file.flush().unwrap();
 
-        println!("Start processing instance {}", current_index);
+    fs::write(
+        format!("{}accepted_neighbors.json", base_path),
+        serde_json::to_string_pretty(&instance.accepted_neighbors).unwrap(),
+    )
+    .unwrap();
 
-        let mut log_file = fs::File::create(format!("{}log.txt", base_path)).unwrap();
+    instance.plot_current_solution(format!("{}final_solution.png", base_path).as_str(), true);
+    fs::write(
+        format!("{}final_solution.json", base_path),
+        serde_json::to_string_pretty(&instance.current_solution).unwrap(),
+    )
+    .unwrap();
 
-        instance.solve(processing_instance.optimization_option, &mut log_file);
-
-        log_file.flush().unwrap();
-
-        fs::write(
-            format!("{}accepted_neighbors.json", base_path),
-            serde_json::to_string_pretty(&instance.accepted_neighbors).unwrap(),
-        )
-        .unwrap();
-
-        instance.plot_current_solution(format!("{}final_solution.png", base_path).as_str(), true);
-        fs::write(
-            format!("{}final_solution.json", base_path),
-            serde_json::to_string_pretty(&instance.current_solution).unwrap(),
-        )
-        .unwrap();
-
-        println!("Finished processing instance {}", current_index);
-    }
+    println!("Finished processing instance {}", current_index);
 }
 
 fn get_processing_instances() -> Vec<ProcessingInstance> {

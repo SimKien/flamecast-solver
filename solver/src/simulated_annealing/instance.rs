@@ -141,7 +141,7 @@ impl<'a> SimulatedAnnealing<'a> {
             let changed = self.neighbor_change(neighbor_cost, &possible_neighbor);
 
             if self.verbose {
-                writeln!(buf, "Iteraion: {}", self.iteration).unwrap();
+                writeln!(buf, "Iteration: {}", self.iteration).unwrap();
                 writeln!(
                     buf,
                     "Number of Candidate Neighbors: {}",

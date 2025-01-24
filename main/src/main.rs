@@ -1,33 +1,23 @@
-use solver_test::{create_testing_instances, run_solver_tests};
-
+mod cli;
 mod solver_test;
 
+use clap::Parser;
+use cli::{
+    process_generate_instances, process_num_cpus, process_run_tests, FirstLevelCommand, MainArgs,
+};
+
 fn main() {
-    let args = std::env::args().collect::<Vec<String>>();
+    let args = MainArgs::parse();
 
-    let num = num_cpus::get();
-    println!("Number of available threads: {}", num);
-
-    if args.len() > 3 || args.len() < 2 {
-        println!("Usage: cargo run create_testing_instances");
-        println!("Usage: cargo run run_tests <num_threads>");
-        return;
-    }
-
-    if args.len() == 2 && args[1] == "create_testing_instances" {
-        println!("Creating testing instances...");
-        create_testing_instances();
-    } else if args[1] == "run_tests" {
-        let num_threads = if args.len() == 3 {
-            args[2].parse::<usize>().unwrap()
-        } else {
-            num
-        };
-        println!("Running tests with {} threads...", num_threads);
-        run_solver_tests(num_threads);
-    } else {
-        println!("Usage: cargo run create_testing_instances");
-        println!("Usage: cargo run run_tests <num_threads>");
-        return;
+    match args.subcommand {
+        FirstLevelCommand::GenerateInstances(sub_args) => {
+            process_generate_instances(sub_args);
+        }
+        FirstLevelCommand::RunTests(sub_args) => {
+            process_run_tests(sub_args);
+        }
+        FirstLevelCommand::NumCpus => {
+            process_num_cpus();
+        }
     }
 }
