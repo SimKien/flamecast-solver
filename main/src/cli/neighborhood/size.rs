@@ -13,12 +13,6 @@ pub struct SizeArgs {
 }
 
 pub fn process_size(args: SizeArgs) {
-    let stop_watch = if args.time {
-        Some(Stopwatch::new())
-    } else {
-        None
-    };
-
     match args.instance {
         Some(instance) => {
             println!(
@@ -39,6 +33,12 @@ pub fn process_size(args: SizeArgs) {
                 flamecast_test_instance.capacities,
                 flamecast_test_instance.sources_drains_embeddings,
             );
+
+            let stop_watch = if args.time {
+                Some(Stopwatch::new())
+            } else {
+                None
+            };
 
             println!(
                 "Neighborhood size: {}",
