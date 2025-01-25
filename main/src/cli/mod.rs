@@ -1,9 +1,9 @@
-mod generate_instances;
+mod instances;
 mod main_command;
+mod neighborhood;
 mod num_cpus;
-mod run_tests;
 
-pub use generate_instances::*;
+pub use instances::*;
 pub use main_command::*;
+pub use neighborhood::*;
 pub use num_cpus::*;
-pub use run_tests::*;

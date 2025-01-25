@@ -4,6 +4,7 @@ mod neighborhood;
 mod plotting;
 mod simulated_annealing;
 mod tests;
+mod timer;
 mod types;
 mod variable_neighborhood_search;
 
@@ -19,6 +20,7 @@ use tests::{
     NEIGHBORHOOD_TEST_INSTANCES, TESTGRAPHS,
 };
 pub use tests::{FlamecastTestInstance, TestGraph};
+pub use timer::Stopwatch;
 pub use types::*;
 
 pub fn hello_world() {

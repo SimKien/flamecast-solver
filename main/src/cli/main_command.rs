@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use super::{GenerateInstancesArgs, RunTestsArgs};
+use super::{InstancesArgs, NeighborhoodArgs};
 
 #[derive(Parser)]
 #[command(
@@ -15,10 +15,10 @@ pub struct MainArgs {
 
 #[derive(Subcommand)]
 pub enum FirstLevelCommand {
-    /// Generate testing instances for the flamecast solver.
-    GenerateInstances(GenerateInstancesArgs),
-    /// Run tests for the flamecast solver with predefined or provided instances.
-    RunTests(RunTestsArgs),
+    /// Run operations on Flamecast instances.
+    Instances(InstancesArgs),
+    /// Run neighborhood operations
+    Neighborhood(NeighborhoodArgs),
     /// Get the number of CPUs available.
     NumCpus,
 }

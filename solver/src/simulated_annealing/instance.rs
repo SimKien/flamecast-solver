@@ -1,9 +1,8 @@
-use chrono::TimeDelta;
 use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
 
 use crate::{
     neighborhood::{Neighbor, NeighborCost},
-    EmbeddingOptions, FlamecastInstance,
+    EmbeddingOptions, FlamecastInstance, Stopwatch,
 };
 
 use super::{neighborhood_change_probability, CoolingSchedule, OptimizationOptions};
@@ -114,11 +113,12 @@ impl<'a> SimulatedAnnealing<'a> {
     pub fn solve<T: std::io::Write>(&mut self, buf: &mut T) -> f64 {
         let initial_objective_value = self.current_objective_value;
 
-        let start_time = chrono::Utc::now();
-        let mut last_time = start_time.clone();
+        let start_watch = Stopwatch::new();
+        let mut current_watch = Stopwatch::new();
 
         if self.verbose {
             writeln!(buf, "Starting Simulated Annealing...").unwrap();
+            writeln!(buf, "Started At: {}", chrono::Utc::now().to_string()).unwrap();
             writeln!(buf, "Initial Objective Value: {}", initial_objective_value).unwrap();
             writeln!(buf, "Initial Temperature: {}", self.initial_temperature).unwrap();
             writeln!(
@@ -182,15 +182,13 @@ impl<'a> SimulatedAnnealing<'a> {
                     writeln!(buf, "Solution Not Changed With Neighbor").unwrap();
                 }
 
-                let current_time = chrono::Utc::now();
-                let elapsed_time = current_time.signed_duration_since(last_time);
                 writeln!(
                     buf,
                     "Elapsed Time For Current Step: {}",
-                    get_time_diff_pretty(elapsed_time)
+                    current_watch.elapsed_pretty()
                 )
                 .unwrap();
-                last_time = current_time;
+                current_watch.restart();
             }
 
             if changed {
@@ -229,43 +227,9 @@ impl<'a> SimulatedAnnealing<'a> {
             )
             .unwrap();
 
-            let end_time = chrono::Utc::now();
-            let elapsed_time = end_time.signed_duration_since(start_time);
-            writeln!(
-                buf,
-                "Total Time Needed: {}",
-                get_time_diff_pretty(elapsed_time)
-            )
-            .unwrap();
+            writeln!(buf, "Total Time Needed: {}", start_watch.elapsed_pretty()).unwrap();
         }
 
         return self.current_objective_value;
     }
-}
-
-fn get_time_diff_pretty(diff: TimeDelta) -> String {
-    let num_millis = diff.num_milliseconds() % 1_000;
-    let num_seconds = diff.num_seconds() % 60;
-    let num_minutes = (diff.num_seconds() / 60) % 60;
-    let num_hours = diff.num_seconds() / 3600;
-    let result = if diff.num_nanoseconds().is_some() {
-        let num_nano = diff.num_nanoseconds().unwrap() % 1_000;
-        let num_micro = diff.num_microseconds().unwrap() % 1_000;
-        format!(
-            "{}h {}min {}s {}ms {}us {}ns",
-            num_hours, num_minutes, num_seconds, num_millis, num_micro, num_nano
-        )
-    } else if diff.num_microseconds().is_some() {
-        let num_micro = diff.num_microseconds().unwrap() % 1_000;
-        format!(
-            "{}h {}min {}s {}ms {}us",
-            num_hours, num_minutes, num_seconds, num_millis, num_micro
-        )
-    } else {
-        format!(
-            "{}h {}min {}s {}ms",
-            num_hours, num_minutes, num_seconds, num_millis
-        )
-    };
-    return result;
 }
