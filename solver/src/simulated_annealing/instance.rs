@@ -1,11 +1,15 @@
+use std::usize;
+
 use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
 
 use crate::{
     neighborhood::{Neighbor, NeighborCost},
-    EmbeddingOptions, FlamecastInstance, Stopwatch,
+    EmbeddingOptions, FlamecastInstance, NeighborChange, Stopwatch,
 };
 
-use super::{neighborhood_change_probability, CoolingSchedule, OptimizationOptions};
+use super::{
+    neighborhood_change_probability, CoolingSchedule, NeighborSearchOption, OptimizationOptions,
+};
 
 const CHOOSE_NEIGHBOR_PROBABILITY_SCALE: f64 = 10.0;
 
@@ -15,6 +19,7 @@ pub struct SimulatedAnnealing<'a> {
     pub current_objective_value: f64,
     pub cooling_schedule: CoolingSchedule,
     pub initial_temperature: f64,
+    pub neighbor_search_option: NeighborSearchOption,
     pub iteration: usize,
     pub max_iterations: usize,
     pub verbose: bool,
@@ -29,6 +34,7 @@ impl<'a> SimulatedAnnealing<'a> {
         optimization_options: OptimizationOptions,
     ) -> Self {
         let current_objective_value = flamecast_instance
+            .solution_state
             .current_solution
             .calculate_costs(flamecast_instance.alpha);
         Self {
@@ -36,6 +42,7 @@ impl<'a> SimulatedAnnealing<'a> {
             current_objective_value,
             cooling_schedule: optimization_options.cooling_schedule,
             initial_temperature: optimization_options.initial_temperature,
+            neighbor_search_option: optimization_options.neighbor_search_option,
             iteration: 0,
             max_iterations: optimization_options.max_iterations,
             verbose: optimization_options.verbose,
@@ -45,10 +52,10 @@ impl<'a> SimulatedAnnealing<'a> {
         }
     }
 
-    pub fn get_candidate_neighbors_cost(&mut self) -> Vec<NeighborCost> {
+    pub fn get_candidate_neighbors(&mut self) -> Vec<NeighborCost> {
         return self
             .flamecast_instance
-            .get_candidate_neighbors_cost(&self.neighbor_test_options);
+            .get_all_candidate_neighbors_cost(&self.neighbor_test_options);
     }
 
     pub fn choose_candidate_neighbor(
@@ -93,19 +100,35 @@ impl<'a> SimulatedAnnealing<'a> {
             let mut rng = rand::thread_rng();
             let random_number: f64 = rng.gen_range(0.0..=1.0);
             if random_number >= acceptance_probability {
-                // The current embedding is the embedding of the not accepted neighbor so the embedding must be reloaded when neighbor is not accepted
-                self.flamecast_instance
-                    .embed_current_solution(&self.neighbor_cost_options);
+                //Re-embedding is only needed in complete Embedding search
+                if self.neighbor_search_option == NeighborSearchOption::CompleteEmbedding {
+                    // The current embedding is the embedding of the not accepted neighbor so the embedding must be reloaded when neighbor is not accepted
+                    self.flamecast_instance
+                        .embed_current_solution(&self.neighbor_cost_options);
+                }
                 return false;
             }
         }
+
+        // Update solution state if neighbor is accepted
         self.flamecast_instance
+            .solution_state
             .current_solution
             .base_graph
             .apply_neighbor_change(neighbor);
         self.current_objective_value = self
             .flamecast_instance
             .calculate_objective_function_value(&self.neighbor_cost_options);
+
+        let solution_state = &mut self.flamecast_instance.solution_state;
+        solution_state.accepted_neighbors.push(NeighborChange::new(
+            neighbor.clone(),
+            self.current_objective_value,
+            self.iteration,
+        ));
+        solution_state
+            .best_iteration
+            .update(self.current_objective_value, self.iteration);
 
         return true;
     }
@@ -131,13 +154,13 @@ impl<'a> SimulatedAnnealing<'a> {
         }
 
         while self.iteration < self.max_iterations {
-            let mut candidate_neighbors = self.get_candidate_neighbors_cost();
-
+            //TODO: improve neighbor choose algorithm
+            let mut candidate_neighbors = self.get_candidate_neighbors();
             let possible_neighbor = self.choose_candidate_neighbor(&mut candidate_neighbors);
+
             let neighbor_cost = self
                 .flamecast_instance
                 .get_neighbor_cost(&possible_neighbor, &self.neighbor_cost_options);
-
             let changed = self.neighbor_change(neighbor_cost, &possible_neighbor);
 
             if self.verbose {
@@ -191,15 +214,56 @@ impl<'a> SimulatedAnnealing<'a> {
                 current_watch.restart();
             }
 
-            if changed {
-                self.flamecast_instance
-                    .accepted_neighbors
-                    .push(possible_neighbor);
-            }
-
             self.iteration += 1;
         }
 
+        let current_objective_value = self.current_objective_value;
+        let best_objective_value = self
+            .flamecast_instance
+            .solution_state
+            .best_iteration
+            .best_value;
+
+        if initial_objective_value < best_objective_value {
+            self.flamecast_instance.solution_state.current_solution = self
+                .flamecast_instance
+                .solution_state
+                .initial_solution
+                .clone();
+            self.flamecast_instance
+                .solution_state
+                .best_iteration
+                .update(initial_objective_value, usize::MAX);
+        } else if best_objective_value < current_objective_value {
+            let mut best_solution = self
+                .flamecast_instance
+                .solution_state
+                .initial_solution
+                .clone();
+            for neighbor_change in self
+                .flamecast_instance
+                .solution_state
+                .accepted_neighbors
+                .iter()
+            {
+                best_solution
+                    .base_graph
+                    .apply_neighbor_change(&neighbor_change.neighbor);
+
+                if neighbor_change.iteration
+                    == self
+                        .flamecast_instance
+                        .solution_state
+                        .best_iteration
+                        .iteration
+                {
+                    break;
+                }
+            }
+            self.flamecast_instance.solution_state.current_solution = best_solution;
+        }
+
+        // Calculate embedding and objective function value with the final options
         self.current_objective_value = self
             .flamecast_instance
             .calculate_objective_function_value(&self.final_cost_options);
@@ -224,6 +288,26 @@ impl<'a> SimulatedAnnealing<'a> {
                 buf,
                 "Solution Quality Change: {}",
                 self.current_objective_value - initial_objective_value
+            )
+            .unwrap();
+
+            let capacities = &self.flamecast_instance.capacities;
+            let number_of_sources = self.flamecast_instance.get_number_of_sources();
+            let number_of_drains = self.flamecast_instance.get_number_of_drains();
+            let num_layers = self.flamecast_instance.num_layers;
+            writeln!(
+                buf,
+                "Final Solution Valid: {}",
+                self.flamecast_instance
+                    .solution_state
+                    .current_solution
+                    .base_graph
+                    .is_valid_flamecast_topology_check_all(
+                        capacities,
+                        number_of_sources,
+                        number_of_drains,
+                        num_layers
+                    )
             )
             .unwrap();
 

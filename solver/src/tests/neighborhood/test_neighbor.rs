@@ -15,14 +15,16 @@ fn process_test_instance(instance: &mut FlamecastInstance, index: usize) {
     instance.embed_current_solution(&EmbeddingOptions::default());
     instance.plot_current_solution(format!("./test_neighbor/test{}.png", index).as_str(), true);
 
-    let neighbors = instance.get_possible_neighbors();
-    let all_neighbors = calculate_all_neighbors(&instance.current_solution.base_graph);
+    let neighbors = instance.get_all_possible_neighbors();
+
+    let solution_state = &mut instance.solution_state;
+    let all_neighbors = calculate_all_neighbors(&solution_state.current_solution.base_graph);
 
     let mut neighbor_loader = NeighborLoader::new();
     all_neighbors.iter().for_each(|neighbor| {
-        neighbor_loader.load_neighbor(&mut instance.current_solution.base_graph, neighbor);
+        neighbor_loader.load_neighbor(&mut solution_state.current_solution.base_graph, neighbor);
 
-        let valid = instance
+        let valid = solution_state
             .current_solution
             .base_graph
             .is_valid_flamecast_topology(&instance.capacities);
@@ -33,10 +35,10 @@ fn process_test_instance(instance: &mut FlamecastInstance, index: usize) {
             assert!(!neighbors.contains(neighbor));
         }
 
-        neighbor_loader.unload_neighbor(&mut instance.current_solution.base_graph, neighbor);
+        neighbor_loader.unload_neighbor(&mut solution_state.current_solution.base_graph, neighbor);
 
         if let Neighbor::Split(children2) = neighbor {
-            let parent = instance
+            let parent = solution_state
                 .current_solution
                 .base_graph
                 .get_parent(&children2[0])
@@ -45,7 +47,7 @@ fn process_test_instance(instance: &mut FlamecastInstance, index: usize) {
             if valid {
                 assert!(neighbors.iter().any(|n| match n {
                     Neighbor::Split(children) => {
-                        let parent2 = instance
+                        let parent2 = solution_state
                             .current_solution
                             .base_graph
                             .get_parent(&children[0])
@@ -57,7 +59,7 @@ fn process_test_instance(instance: &mut FlamecastInstance, index: usize) {
             } else {
                 assert!(!neighbors.iter().any(|n| match n {
                     Neighbor::Split(children) => {
-                        let parent2 = instance
+                        let parent2 = solution_state
                             .current_solution
                             .base_graph
                             .get_parent(&children[0])

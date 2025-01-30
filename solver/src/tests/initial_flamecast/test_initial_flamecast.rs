@@ -6,8 +6,9 @@ use super::{generate_random_flamecast_instance, FLAMECAST_TEST_INSTANCES};
 
 #[cfg(test)]
 fn validate_initial_flamecast_instance(instance: &FlamecastInstance, index: usize) {
-    assert!(instance
-        .current_solution
+    let current_solution = &instance.solution_state.current_solution;
+
+    assert!(current_solution
         .base_graph
         .is_valid_flamecast_topology_check_all(
             &instance.capacities,
@@ -17,12 +18,15 @@ fn validate_initial_flamecast_instance(instance: &FlamecastInstance, index: usiz
         ));
 
     compare_with_generalized_weiszfeld(
-        &instance.current_solution.vertices_embeddings,
-        &instance.current_solution.base_graph,
+        &current_solution.vertices_embeddings,
+        &current_solution.base_graph,
         instance.alpha,
     );
 
-    instance.plot_current_solution(format!("./test_initial_flamecast/test{}.png", index).as_str(), true);
+    instance.plot_current_solution(
+        format!("./test_initial_flamecast/test{}.png", index).as_str(),
+        true,
+    );
 }
 
 #[test]

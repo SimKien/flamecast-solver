@@ -14,7 +14,7 @@ use graph_generation::generate_random_directed_graph;
 pub use neighborhood::Neighbor;
 pub use plotting::PlottingVertices;
 use plotting::{plot_embedded_graph, plot_vertices_with_colors};
-pub use simulated_annealing::{CoolingSchedule, OptimizationOptions};
+pub use simulated_annealing::{CoolingSchedule, NeighborSearchOption, OptimizationOptions};
 use tests::{
     combine_test_graphs, generate_random_flamecast_instance, FLAMECAST_TEST_INSTANCES,
     NEIGHBORHOOD_TEST_INSTANCES, TESTGRAPHS,

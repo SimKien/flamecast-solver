@@ -5,7 +5,8 @@ use rayon::{
     ThreadPoolBuilder,
 };
 use solver::{
-    generate_flamecast_instance, EmbeddingOptions, FlamecastTestInstance, OptimizationOptions,
+    generate_flamecast_instance, EmbeddingOptions, FlamecastTestInstance, NeighborSearchOption,
+    OptimizationOptions,
 };
 
 use super::{INSTANCES, OPTIMIZATION_OPTIONS};
@@ -74,7 +75,7 @@ fn solve_processing_instance(processing_instance: &ProcessingInstance) {
     instance.plot_current_solution(format!("{}initial_solution.png", base_path).as_str(), true);
     fs::write(
         format!("{}initial_solution.json", base_path),
-        serde_json::to_string_pretty(&instance.current_solution).unwrap(),
+        serde_json::to_string_pretty(&instance.solution_state.current_solution).unwrap(),
     )
     .unwrap();
 
@@ -91,14 +92,19 @@ fn solve_processing_instance(processing_instance: &ProcessingInstance) {
 
     fs::write(
         format!("{}accepted_neighbors.json", base_path),
-        serde_json::to_string_pretty(&instance.accepted_neighbors).unwrap(),
+        serde_json::to_string_pretty(&instance.solution_state.accepted_neighbors).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        format!("{}best_iteration.json", base_path),
+        serde_json::to_string_pretty(&instance.solution_state.best_iteration).unwrap(),
     )
     .unwrap();
 
     instance.plot_current_solution(format!("{}final_solution.png", base_path).as_str(), true);
     fs::write(
         format!("{}final_solution.json", base_path),
-        serde_json::to_string_pretty(&instance.current_solution).unwrap(),
+        serde_json::to_string_pretty(&instance.solution_state.current_solution).unwrap(),
     )
     .unwrap();
 
@@ -125,6 +131,7 @@ fn get_processing_instances() -> Vec<ProcessingInstance> {
                 let option = OptimizationOptions::new(
                     optimization_option.0 .0,
                     optimization_option.0 .1,
+                    NeighborSearchOption::CompleteEmbedding,
                     optimization_option.1,
                     true,
                     default_options.clone(),

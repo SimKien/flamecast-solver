@@ -42,7 +42,7 @@ pub fn process_size(args: SizeArgs) {
 
             println!(
                 "Neighborhood size: {}",
-                instance.get_possible_neighbors().len()
+                instance.get_all_possible_neighbors().len()
             );
 
             if let Some(stop_watch) = stop_watch {

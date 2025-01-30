@@ -1,6 +1,8 @@
 use std::sync::LazyLock;
 
-use crate::{FlamecastInstance, GraphEmbedding, Layer, LayeredGraph, Vertex, VertexEmbeddings};
+use crate::{
+    FlamecastInstance, GraphEmbedding, Layer, LayeredGraph, SolutionState, Vertex, VertexEmbeddings,
+};
 
 const NEIGHBORHOOD_TEST_INSTANCE1: LazyLock<FlamecastInstance> =
     LazyLock::new(|| FlamecastInstance {
@@ -16,7 +18,7 @@ const NEIGHBORHOOD_TEST_INSTANCE1: LazyLock<FlamecastInstance> =
                 vec![(0.75, 0.5)],
             ],
         },
-        current_solution: GraphEmbedding::new(
+        solution_state: SolutionState::new(GraphEmbedding::new(
             LayeredGraph::from(vec![
                 Layer::from(vec![
                     Vertex::new(Some(0), None),
@@ -42,8 +44,7 @@ const NEIGHBORHOOD_TEST_INSTANCE1: LazyLock<FlamecastInstance> =
                 Layer::from(vec![Vertex::new(None, Some(vec![0, 1]))]),
             ]),
             VertexEmbeddings::new(),
-        ),
-        accepted_neighbors: vec![],
+        )),
     });
 
 pub const NEIGHBORHOOD_TEST_INSTANCES: [LazyLock<FlamecastInstance>; 1] =

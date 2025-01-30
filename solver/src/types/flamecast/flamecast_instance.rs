@@ -5,8 +5,10 @@ use crate::{
     graph_generation::generate_random_flamecast_graph,
     plotting::plot_embedded_graph,
     simulated_annealing::{OptimizationOptions, SimulatedAnnealing},
-    EmbeddingOptions, GraphEmbedding, Neighbor, VertexEmbeddings,
+    EmbeddingOptions, GraphEmbedding, VertexEmbeddings,
 };
+
+use super::SolutionState;
 
 pub const FLAMECAST_BASE_FILE_PATH: &str = "./solutions/";
 
@@ -16,8 +18,7 @@ pub struct FlamecastInstance {
     pub num_layers: usize,
     pub capacities: Vec<usize>,
     pub sources_drains_embeddings: VertexEmbeddings,
-    pub current_solution: GraphEmbedding,
-    pub accepted_neighbors: Vec<Neighbor>,
+    pub solution_state: SolutionState,
 }
 
 impl FlamecastInstance {
@@ -42,13 +43,14 @@ impl FlamecastInstance {
 
         let initial_solution = GraphEmbedding::new(initial_topology, initial_embedding);
 
+        let initial_solution_state = SolutionState::new(initial_solution);
+
         Self {
             alpha,
             num_layers,
             capacities,
             sources_drains_embeddings,
-            current_solution: initial_solution,
-            accepted_neighbors: Vec::new(),
+            solution_state: initial_solution_state,
         }
     }
 
@@ -61,21 +63,27 @@ impl FlamecastInstance {
     }
 
     pub fn plot_current_solution(&self, file_path: &str, show_layers: bool) {
-        plot_embedded_graph(file_path, &self.current_solution, show_layers);
+        plot_embedded_graph(
+            file_path,
+            &self.solution_state.current_solution,
+            show_layers,
+        );
     }
 
     pub fn get_objective_function_value(&self) -> f64 {
-        self.current_solution.calculate_costs(self.alpha)
+        self.solution_state
+            .current_solution
+            .calculate_costs(self.alpha)
     }
 
     pub fn embed_current_solution(&mut self, options: &EmbeddingOptions) {
         let current_embedding = embed_directed_graph(
-            &self.current_solution.base_graph,
+            &self.solution_state.current_solution.base_graph,
             &self.sources_drains_embeddings,
             self.alpha,
             options,
         );
-        self.current_solution.vertices_embeddings = current_embedding;
+        self.solution_state.current_solution.vertices_embeddings = current_embedding;
     }
 
     pub fn calculate_objective_function_value(&mut self, options: &EmbeddingOptions) -> f64 {
