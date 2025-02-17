@@ -1,3 +1,4 @@
+use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -53,6 +54,18 @@ impl Vertex {
         self.children_indices
             .get_or_insert_with(|| Vec::new())
             .push(child_index);
+    }
+
+    pub fn append_children(&mut self, new_children: &mut Vec<usize>) {
+        self.children_indices
+            .get_or_insert_with(|| Vec::new())
+            .append(new_children);
+    }
+
+    pub fn truncate_children(&mut self, children_len: usize) {
+        if let Some(children) = &mut self.children_indices {
+            children.truncate(children_len);
+        }
     }
 
     pub fn remove_child(&mut self, child_index: usize) {
@@ -393,6 +406,36 @@ impl LayeredGraph {
         }
 
         return neighbours;
+    }
+
+    pub fn get_sorted_random_vertices(&self, amount: usize) -> Vec<VertexID> {
+        // returns rendom vertices which are sorted by layer_index and index in a layer
+        let mut rng = rand::thread_rng();
+
+        // dont pick vertices of the last layer because they cant have neighbors
+        let max_amount_regarded_vertices =
+            self.get_number_of_vertices() - self.layers[self.layers.len() - 1].vertices.len();
+
+        let mut indices: Vec<usize> = (0..max_amount_regarded_vertices).collect();
+        indices.shuffle(&mut rng);
+
+        indices.truncate(amount);
+        indices.sort();
+
+        let mut current_index = 0;
+        let mut layer_index = 0;
+        let layer_structure = self.get_layer_structure();
+
+        return indices
+            .iter()
+            .map(|index| {
+                while *index >= current_index + layer_structure[layer_index] {
+                    current_index += layer_structure[layer_index];
+                    layer_index += 1;
+                }
+                return VertexID::new(layer_index, index - current_index);
+            })
+            .collect::<Vec<VertexID>>();
     }
 
     pub fn calculate_vertex_flows(&self) -> Vec<Vec<usize>> {

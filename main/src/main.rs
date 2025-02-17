@@ -1,5 +1,5 @@
 mod cli;
-mod solver_test;
+mod solver_testing;
 
 use clap::Parser;
 use cli::{

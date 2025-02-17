@@ -26,6 +26,7 @@ fn validate_initial_flamecast_instance(instance: &FlamecastInstance, index: usiz
     instance.plot_current_solution(
         format!("./test_initial_flamecast/test{}.png", index).as_str(),
         true,
+        true,
     );
 }
 

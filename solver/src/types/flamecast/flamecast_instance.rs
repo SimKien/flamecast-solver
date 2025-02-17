@@ -37,6 +37,7 @@ impl FlamecastInstance {
         let initial_embedding = embed_directed_graph(
             &initial_topology,
             &sources_drains_embeddings,
+            &initial_topology.calculate_edge_flows(),
             alpha,
             &EmbeddingOptions::default(),
         );
@@ -62,11 +63,12 @@ impl FlamecastInstance {
         self.sources_drains_embeddings.embeddings[self.num_layers - 1].len()
     }
 
-    pub fn plot_current_solution(&self, file_path: &str, show_layers: bool) {
+    pub fn plot_current_solution(&self, file_path: &str, show_layers: bool, show_indices: bool) {
         plot_embedded_graph(
             file_path,
             &self.solution_state.current_solution,
             show_layers,
+            show_indices,
         );
     }
 
@@ -80,6 +82,11 @@ impl FlamecastInstance {
         let current_embedding = embed_directed_graph(
             &self.solution_state.current_solution.base_graph,
             &self.sources_drains_embeddings,
+            &self
+                .solution_state
+                .current_solution
+                .base_graph
+                .calculate_edge_flows(),
             self.alpha,
             options,
         );
@@ -91,9 +98,13 @@ impl FlamecastInstance {
         self.get_objective_function_value()
     }
 
-    pub fn solve<T: std::io::Write>(&mut self, options: OptimizationOptions, buf: &mut T) -> f64 {
+    pub fn solve<T: std::io::Write>(
+        &mut self,
+        options: OptimizationOptions,
+        printer: Option<&mut T>,
+    ) -> f64 {
         let mut optimization_instance = SimulatedAnnealing::from_flamecast_instance(self, options);
 
-        return optimization_instance.solve(buf);
+        return optimization_instance.solve(printer);
     }
 }

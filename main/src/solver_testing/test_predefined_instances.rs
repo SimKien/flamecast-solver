@@ -1,13 +1,12 @@
 use std::{fs, io::Write};
 
-use rayon::{
-    iter::{IntoParallelRefIterator, ParallelIterator},
-    ThreadPoolBuilder,
-};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use solver::{
     generate_flamecast_instance, EmbeddingOptions, FlamecastTestInstance, NeighborSearchOption,
     OptimizationOptions,
 };
+
+use crate::solver_testing::PREDEFINED_BASE_PATH;
 
 use super::{INSTANCES, OPTIMIZATION_OPTIONS};
 
@@ -35,32 +34,29 @@ impl ProcessingInstance {
     }
 }
 
-pub fn run_solver_tests(num_threads: usize) {
-    ThreadPoolBuilder::new()
-        .num_threads(num_threads)
-        .build_global()
-        .unwrap();
-
-    let test_processing_instances = get_processing_instances();
+pub fn test_predefined_instances(predefined_instances_indexes: &Vec<usize>) {
+    let test_processing_instances = get_processing_instances(predefined_instances_indexes);
 
     test_processing_instances
         .par_iter()
         .for_each(|processing_instance| {
-            solve_processing_instance(processing_instance);
+            let base_path = format!(
+                "{}instance{}/{}",
+                PREDEFINED_BASE_PATH,
+                processing_instance.instance_index,
+                processing_instance.optimization_index
+            );
+            solve_processing_instance(processing_instance, &base_path);
         });
 
     println!("Finished processing all instances");
     println!("All threads finished");
 }
 
-fn solve_processing_instance(processing_instance: &ProcessingInstance) {
+pub fn solve_processing_instance(processing_instance: &ProcessingInstance, base_path: &String) {
     let instance_index = processing_instance.instance_index;
     let processing_index = processing_instance.optimization_index;
     let current_index = instance_index * OPTIMIZATION_OPTIONS.len() + processing_index;
-    let base_path = format!(
-        "./solver_test/instance{}/{}",
-        instance_index, processing_index
-    );
 
     let mut instance = generate_flamecast_instance(
         processing_instance.instance.alpha,
@@ -72,7 +68,11 @@ fn solve_processing_instance(processing_instance: &ProcessingInstance) {
             .clone(),
     );
 
-    instance.plot_current_solution(format!("{}initial_solution.png", base_path).as_str(), true);
+    instance.plot_current_solution(
+        format!("{}initial_solution.png", base_path).as_str(),
+        true,
+        false,
+    );
     fs::write(
         format!("{}initial_solution.json", base_path),
         serde_json::to_string_pretty(&instance.solution_state.current_solution).unwrap(),
@@ -85,7 +85,7 @@ fn solve_processing_instance(processing_instance: &ProcessingInstance) {
 
     instance.solve(
         processing_instance.optimization_option.clone(),
-        &mut log_file,
+        Some(&mut log_file),
     );
 
     log_file.flush().unwrap();
@@ -101,7 +101,11 @@ fn solve_processing_instance(processing_instance: &ProcessingInstance) {
     )
     .unwrap();
 
-    instance.plot_current_solution(format!("{}final_solution.png", base_path).as_str(), true);
+    instance.plot_current_solution(
+        format!("{}final_solution.png", base_path).as_str(),
+        true,
+        false,
+    );
     fs::write(
         format!("{}final_solution.json", base_path),
         serde_json::to_string_pretty(&instance.solution_state.current_solution).unwrap(),
@@ -111,13 +115,22 @@ fn solve_processing_instance(processing_instance: &ProcessingInstance) {
     println!("Finished processing instance {}", current_index);
 }
 
-fn get_processing_instances() -> Vec<ProcessingInstance> {
+fn get_processing_instances(predefined_instances_indexes: &Vec<usize>) -> Vec<ProcessingInstance> {
     let optimization_options = OPTIMIZATION_OPTIONS.to_vec();
 
     let mut processing_instances = Vec::new();
 
-    for instance_index in 0..INSTANCES.len() {
-        let file_path = format!("./solver_test/instance{}/instance.json", instance_index);
+    let predefined_instances_indexes = if predefined_instances_indexes.len() == 0 {
+        &(0..INSTANCES.len()).collect::<Vec<usize>>()
+    } else {
+        predefined_instances_indexes
+    };
+
+    for instance_index in predefined_instances_indexes {
+        let file_path = format!(
+            "{}instance{}/instance.json",
+            PREDEFINED_BASE_PATH, instance_index
+        );
         let test_instance = fs::read_to_string(file_path)
             .ok()
             .and_then(|test_instance| {
@@ -131,7 +144,7 @@ fn get_processing_instances() -> Vec<ProcessingInstance> {
                 let option = OptimizationOptions::new(
                     optimization_option.0 .0,
                     optimization_option.0 .1,
-                    NeighborSearchOption::CompleteEmbedding,
+                    NeighborSearchOption::CompleteHeuristical,
                     optimization_option.1,
                     true,
                     default_options.clone(),
@@ -141,7 +154,7 @@ fn get_processing_instances() -> Vec<ProcessingInstance> {
                 processing_instances.push(ProcessingInstance::new(
                     test_instance.clone(),
                     option,
-                    instance_index,
+                    *instance_index,
                     optimization_index,
                 ));
             },

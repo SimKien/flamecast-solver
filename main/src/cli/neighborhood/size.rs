@@ -1,7 +1,7 @@
 use clap::Args;
 use solver::{generate_flamecast_instance, generate_random_flamecast_test_instance, Stopwatch};
 
-use crate::solver_test::INSTANCES;
+use crate::solver_testing::INSTANCES;
 
 #[derive(Args)]
 pub struct SizeArgs {

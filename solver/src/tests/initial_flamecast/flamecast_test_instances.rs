@@ -15,7 +15,7 @@ pub struct FlamecastTestInstance {
 
 impl FlamecastTestInstance {
     pub fn plot_instance(&self, file_path: &str) {
-        plot_flamecast_test_instance(self, file_path);
+        plot_flamecast_test_instance(self, file_path, true);
     }
 }
 

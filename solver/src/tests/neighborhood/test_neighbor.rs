@@ -13,7 +13,11 @@ fn process_test_instance(instance: &mut FlamecastInstance, index: usize) {
     use crate::Neighbor;
 
     instance.embed_current_solution(&EmbeddingOptions::default());
-    instance.plot_current_solution(format!("./test_neighbor/test{}.png", index).as_str(), true);
+    instance.plot_current_solution(
+        format!("./test_neighbor/test{}.png", index).as_str(),
+        true,
+        false,
+    );
 
     let neighbors = instance.get_all_possible_neighbors();
 

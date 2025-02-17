@@ -25,6 +25,14 @@ impl VertexEmbeddings {
     pub fn from(embeddings: Vec<Vec<VertexEmbedding>>) -> Self {
         Self { embeddings }
     }
+
+    pub fn append(&mut self, layer_index: usize, embeddings: &mut Vec<VertexEmbedding>) {
+        self.embeddings[layer_index].append(embeddings);
+    }
+
+    pub fn truncate(&mut self, layer_index: usize, size: usize) {
+        self.embeddings[layer_index].truncate(size);
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

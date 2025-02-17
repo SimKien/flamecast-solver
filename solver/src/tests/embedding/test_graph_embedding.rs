@@ -3,8 +3,10 @@ use rand::Rng;
 
 #[cfg(test)]
 use crate::{
-    embed_graph, generate_random_graph, plotting::plot_embedded_graph, tests::{float_equal, WEISZFELD_EPSILON, embeddings_equal}, LayeredGraph, VertexEmbedding, VertexEmbeddings, VertexID,
-    EmbeddingOptions,
+    embed_graph, generate_random_graph,
+    plotting::plot_embedded_graph,
+    tests::{embeddings_equal, float_equal, WEISZFELD_EPSILON},
+    EmbeddingOptions, LayeredGraph, VertexEmbedding, VertexEmbeddings, VertexID,
 };
 
 #[cfg(test)]
@@ -40,6 +42,7 @@ fn test_random_graph(num_nodes: usize, num_layers: usize, alpha: f64, index: usi
         format!("./test_embedding/output{}.png", index).as_str(),
         &embedded_graph,
         true,
+        false,
     );
 
     compare_with_generalized_weiszfeld(&embedded_graph.vertices_embeddings, &random_graph, alpha);

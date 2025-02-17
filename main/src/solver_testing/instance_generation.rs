@@ -10,6 +10,8 @@ const INSTANCE_4: [usize; 3] = [8, 400, 10];
 
 pub const INSTANCES: [[usize; 3]; 5] = [INSTANCE_0, INSTANCE_1, INSTANCE_2, INSTANCE_3, INSTANCE_4];
 
+pub const PREDEFINED_BASE_PATH: &str = "./solver_test/predefined/";
+
 pub fn generate_testing_flamecast_instance(
     num_layers: usize,
     num_sources: usize,
@@ -19,11 +21,16 @@ pub fn generate_testing_flamecast_instance(
     let test_instance =
         generate_random_flamecast_test_instance(num_layers, num_sources, num_drains, false);
 
-    test_instance
-        .plot_instance(format!("./solver_test/instance{}/instance_visualized.png", index).as_str());
+    test_instance.plot_instance(
+        format!(
+            "{}instance{}/instance_visualized.png",
+            PREDEFINED_BASE_PATH, index
+        )
+        .as_str(),
+    );
 
     fs::write(
-        format!("./solver_test/instance{}/instance.json", index),
+        format!("{}instance{}/instance.json", PREDEFINED_BASE_PATH, index),
         serde_json::to_string_pretty(&test_instance).unwrap(),
     )
     .unwrap();

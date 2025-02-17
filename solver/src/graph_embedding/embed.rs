@@ -11,6 +11,7 @@ use super::{
 pub fn embed_directed_graph(
     graph: &LayeredGraph,
     sources_drains_embeddings: &VertexEmbeddings,
+    edge_flows: &Vec<Vec<usize>>,
     alpha: f64,
     options: &EmbeddingOptions,
 ) -> VertexEmbeddings {
@@ -25,7 +26,13 @@ pub fn embed_directed_graph(
     let p = calculate_p_matrix(number_of_regarded_vertices, number_of_edges);
 
     // calculate q-vector for clarabel
-    let q = calculate_q_vector(graph, number_of_regarded_vertices, number_of_edges, alpha);
+    let q = calculate_q_vector(
+        graph,
+        edge_flows,
+        number_of_regarded_vertices,
+        number_of_edges,
+        alpha,
+    );
 
     // calculate A-Matrix for clarabel
     let a = calculate_a_matrix(graph, number_of_regarded_vertices, number_of_edges);

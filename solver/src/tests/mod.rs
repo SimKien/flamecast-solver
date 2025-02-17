@@ -1,4 +1,5 @@
 mod embedding;
+mod graph;
 mod initial_flamecast;
 mod neighborhood;
 

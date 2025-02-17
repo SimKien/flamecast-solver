@@ -19,7 +19,11 @@ impl PlottingVertices {
     }
 }
 
-pub fn plot_vertices_with_colors(file_path: &str, plotting_vertices: &Vec<PlottingVertices>) {
+pub fn plot_vertices_with_colors(
+    file_path: &str,
+    plotting_vertices: &Vec<PlottingVertices>,
+    show_indices: bool,
+) {
     let root = BitMapBackend::new(file_path, (ROOT_WIDTH, ROOT_HEIGHT)).into_drawing_area();
 
     // Set background color
@@ -33,6 +37,7 @@ pub fn plot_vertices_with_colors(file_path: &str, plotting_vertices: &Vec<Plotti
                 .vertices
                 .iter()
                 .for_each(|vertex_embedding| {
+                    let index = if show_indices { Some(index) } else { None };
                     root.draw(&create_node(
                         vertex_embedding,
                         plotting_vertices.color,

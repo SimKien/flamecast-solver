@@ -14,13 +14,15 @@ Cargo.lock
 *.pdb
 
 # plots of graphs
-plots/
-solver/test_embedding/
-solutions/
-solver/test_initial_flamecast/
-solver/test_neighbor/
+plots/*
+solutions/*
+solver/test_embedding/*
+solver/test_initial_flamecast/*
+solver/test_neighbor/*
 
-solver_test/
+solver_test/*/*
+
+.vscode
 
 # RustRover
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

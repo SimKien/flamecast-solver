@@ -1,6 +1,4 @@
-use std::usize;
-
-use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
+use rand::Rng;
 
 use crate::{
     neighborhood::{Neighbor, NeighborCost},
@@ -8,10 +6,9 @@ use crate::{
 };
 
 use super::{
-    neighborhood_change_probability, CoolingSchedule, NeighborSearchOption, OptimizationOptions,
+    neighborhood_change_probability, select_neighbor_from_complete,
+    select_neighbor_from_heuristical, CoolingSchedule, NeighborSearchOption, OptimizationOptions,
 };
-
-const CHOOSE_NEIGHBOR_PROBABILITY_SCALE: f64 = 10.0;
 
 #[derive(Debug)]
 pub struct SimulatedAnnealing<'a> {
@@ -53,32 +50,28 @@ impl<'a> SimulatedAnnealing<'a> {
     }
 
     pub fn get_candidate_neighbors(&mut self) -> Vec<NeighborCost> {
-        return self
-            .flamecast_instance
-            .get_all_candidate_neighbors_cost(&self.neighbor_test_options);
+        return match self.neighbor_search_option {
+            NeighborSearchOption::CompleteEmbedding => self
+                .flamecast_instance
+                .get_all_candidate_neighbors_cost(&self.neighbor_test_options),
+            NeighborSearchOption::CompleteHeuristical => self
+                .flamecast_instance
+                .get_heuristical_candidate_neighbors_cost(&self.neighbor_test_options),
+        };
     }
 
     pub fn choose_candidate_neighbor(
         &mut self,
-        candidate_neighbors: &mut Vec<NeighborCost>,
+        candidate_neighbors: &Vec<NeighborCost>,
     ) -> Neighbor {
-        let current_objective_value = self.current_objective_value;
-        candidate_neighbors.iter_mut().for_each(|neighbor_cost| {
-            //e^(CHOOSE_NEIGHBOR_PROBABILITY_SCALE * ((current_objective_value - neighbor_cost) / current_objective_value))
-            neighbor_cost.cost = (CHOOSE_NEIGHBOR_PROBABILITY_SCALE
-                * (1.0 - (neighbor_cost.cost / current_objective_value)))
-                .exp();
-        });
-
-        let mut rng = rand::thread_rng();
-        let dist = WeightedIndex::new(
-            &candidate_neighbors
-                .iter()
-                .map(|neighbor_cost| neighbor_cost.cost)
-                .collect::<Vec<f64>>(),
-        )
-        .unwrap();
-        return candidate_neighbors[dist.sample(&mut rng)].neighbor.clone();
+        return match self.neighbor_search_option {
+            NeighborSearchOption::CompleteEmbedding => {
+                select_neighbor_from_complete(candidate_neighbors, self.current_objective_value)
+            }
+            NeighborSearchOption::CompleteHeuristical => {
+                select_neighbor_from_heuristical(candidate_neighbors)
+            }
+        };
     }
 
     pub fn neighbor_change(&mut self, neighbor_cost: f64, neighbor: &Neighbor) -> bool {
@@ -116,6 +109,8 @@ impl<'a> SimulatedAnnealing<'a> {
             .current_solution
             .base_graph
             .apply_neighbor_change(neighbor);
+
+        //TODO: evtl. nur den baum einbetten der verändert wurde (auch bei neighbor_cost berechnung)
         self.current_objective_value = self
             .flamecast_instance
             .calculate_objective_function_value(&self.neighbor_cost_options);
@@ -133,61 +128,136 @@ impl<'a> SimulatedAnnealing<'a> {
         return true;
     }
 
-    pub fn solve<T: std::io::Write>(&mut self, buf: &mut T) -> f64 {
+    pub fn solve<T: std::io::Write>(&mut self, printer: Option<&mut T>) -> f64 {
+        let mut printer: Box<dyn std::io::Write> = if let Some(printer) = printer {
+            Box::new(printer)
+        } else {
+            Box::new(std::io::stdout())
+        };
+
         let initial_objective_value = self.current_objective_value;
 
         let start_watch = Stopwatch::new();
-        let mut current_watch = Stopwatch::new();
 
         if self.verbose {
-            writeln!(buf, "Starting Simulated Annealing...").unwrap();
-            writeln!(buf, "Started At: {}", chrono::Utc::now().to_string()).unwrap();
-            writeln!(buf, "Initial Objective Value: {}", initial_objective_value).unwrap();
-            writeln!(buf, "Initial Temperature: {}", self.initial_temperature).unwrap();
+            writeln!(printer, "Starting Simulated Annealing...").unwrap();
+            writeln!(printer, "Started At: {}", chrono::Utc::now().to_string()).unwrap();
             writeln!(
-                buf,
+                printer,
+                "Initial Objective Value: {}",
+                initial_objective_value
+            )
+            .unwrap();
+            writeln!(printer, "Initial Temperature: {}", self.initial_temperature).unwrap();
+            writeln!(
+                printer,
                 "Cooling Schedule: {}",
                 self.cooling_schedule.to_string()
             )
             .unwrap();
-            writeln!(buf, "Max Iterations: {}", self.max_iterations).unwrap();
+            writeln!(printer, "Max Iterations: {}", self.max_iterations).unwrap();
         }
 
         while self.iteration < self.max_iterations {
-            //TODO: improve neighbor choose algorithm
+            // details for logging
+            let current_iteration_watch = Stopwatch::new();
+
+            // if temperature gets negative, stop iteration
+            if self
+                .cooling_schedule
+                .get_temperature(self.initial_temperature, self.iteration)
+                <= 0.0
+            {
+                if self.verbose {
+                    writeln!(printer, "Iteration: {}", self.iteration).unwrap();
+                    writeln!(
+                        printer,
+                        "Elapsed Time For Current Step: {}",
+                        current_iteration_watch.elapsed_pretty()
+                    )
+                    .unwrap();
+                    let temperature = self
+                        .cooling_schedule
+                        .get_temperature(self.initial_temperature, self.iteration);
+                    writeln!(printer, "Temperature: {}", temperature).unwrap();
+                    writeln!(
+                        printer,
+                        "Optimization stopped because temperature is not positive."
+                    )
+                    .unwrap();
+                }
+                break;
+            }
+
+            // calculate possible neighbors with corresponding costs
             let mut candidate_neighbors = self.get_candidate_neighbors();
+            if candidate_neighbors.is_empty() {
+                if self.verbose {
+                    writeln!(printer, "Iteration: {}", self.iteration).unwrap();
+                    writeln!(
+                        printer,
+                        "Number of Candidate Neighbors: {}",
+                        candidate_neighbors.len()
+                    )
+                    .unwrap();
+                    writeln!(
+                        printer,
+                        "Elapsed Time For Current Step: {}",
+                        current_iteration_watch.elapsed_pretty()
+                    )
+                    .unwrap();
+                    writeln!(
+                        printer,
+                        "Optimization stopped because there is no valid neighbor."
+                    )
+                    .unwrap();
+                }
+                break;
+            }
+
+            // select neighbor of candidate list
             let possible_neighbor = self.choose_candidate_neighbor(&mut candidate_neighbors);
 
+            // calculate cost of the selected neighbor
             let neighbor_cost = self
                 .flamecast_instance
                 .get_neighbor_cost(&possible_neighbor, &self.neighbor_cost_options);
+
+            // details for logging
+            let change_watch = Stopwatch::new();
+
+            // perform the neighbor change
             let changed = self.neighbor_change(neighbor_cost, &possible_neighbor);
 
+            // details for logging, time passed to perform the neighbor change
+            let change_watch_elapsed = change_watch.elapsed_pretty();
+
             if self.verbose {
-                writeln!(buf, "Iteration: {}", self.iteration).unwrap();
+                writeln!(printer, "Iteration: {}", self.iteration).unwrap();
                 writeln!(
-                    buf,
+                    printer,
                     "Number of Candidate Neighbors: {}",
                     candidate_neighbors.len()
                 )
                 .unwrap();
+
                 writeln!(
-                    buf,
+                    printer,
                     "Chosen candidate Neighbor: {}",
                     possible_neighbor.to_string()
                 )
                 .unwrap();
                 writeln!(
-                    buf,
+                    printer,
                     "Current Objective Value: {}",
                     self.current_objective_value
                 )
                 .unwrap();
-                writeln!(buf, "Neighbor Objective Value: {}", neighbor_cost).unwrap();
+                writeln!(printer, "Neighbor Objective Value: {}", neighbor_cost).unwrap();
                 let temperature = self
                     .cooling_schedule
                     .get_temperature(self.initial_temperature, self.iteration);
-                writeln!(buf, "Temperature: {}", temperature).unwrap();
+                writeln!(printer, "Temperature: {}", temperature).unwrap();
                 let acceptance_probability = if neighbor_cost < self.current_objective_value {
                     1.0
                 } else {
@@ -197,21 +267,31 @@ impl<'a> SimulatedAnnealing<'a> {
                         temperature,
                     )
                 };
-                writeln!(buf, "Acceptance Probability: {}", acceptance_probability).unwrap();
+                writeln!(
+                    printer,
+                    "Acceptance Probability: {}",
+                    acceptance_probability
+                )
+                .unwrap();
 
                 if changed {
-                    writeln!(buf, "Solution Changed With Neighbor").unwrap();
+                    writeln!(printer, "Solution Changed With Neighbor").unwrap();
                 } else {
-                    writeln!(buf, "Solution Not Changed With Neighbor").unwrap();
+                    writeln!(printer, "Solution Not Changed With Neighbor").unwrap();
                 }
 
                 writeln!(
-                    buf,
-                    "Elapsed Time For Current Step: {}",
-                    current_watch.elapsed_pretty()
+                    printer,
+                    "Elapsed Time For Neighbor change: {}",
+                    change_watch_elapsed
                 )
                 .unwrap();
-                current_watch.restart();
+                writeln!(
+                    printer,
+                    "Elapsed Time For Current Step: {}",
+                    current_iteration_watch.elapsed_pretty()
+                )
+                .unwrap();
             }
 
             self.iteration += 1;
@@ -269,23 +349,28 @@ impl<'a> SimulatedAnnealing<'a> {
             .calculate_objective_function_value(&self.final_cost_options);
 
         if self.verbose {
-            writeln!(buf, "Simulated Annealing Finished").unwrap();
-            writeln!(buf, "Initial Objective Value: {}", initial_objective_value).unwrap();
+            writeln!(printer, "Simulated Annealing Finished").unwrap();
             writeln!(
-                buf,
+                printer,
+                "Initial Objective Value: {}",
+                initial_objective_value
+            )
+            .unwrap();
+            writeln!(
+                printer,
                 "Final Objective Value: {}",
                 self.current_objective_value
             )
             .unwrap();
             writeln!(
-                buf,
+                printer,
                 "Final Temperature: {}",
                 self.cooling_schedule
                     .get_temperature(self.initial_temperature, self.iteration)
             )
             .unwrap();
             writeln!(
-                buf,
+                printer,
                 "Solution Quality Change: {}",
                 self.current_objective_value - initial_objective_value
             )
@@ -296,7 +381,7 @@ impl<'a> SimulatedAnnealing<'a> {
             let number_of_drains = self.flamecast_instance.get_number_of_drains();
             let num_layers = self.flamecast_instance.num_layers;
             writeln!(
-                buf,
+                printer,
                 "Final Solution Valid: {}",
                 self.flamecast_instance
                     .solution_state
@@ -311,7 +396,12 @@ impl<'a> SimulatedAnnealing<'a> {
             )
             .unwrap();
 
-            writeln!(buf, "Total Time Needed: {}", start_watch.elapsed_pretty()).unwrap();
+            writeln!(
+                printer,
+                "Total Time Needed: {}",
+                start_watch.elapsed_pretty()
+            )
+            .unwrap();
         }
 
         return self.current_objective_value;

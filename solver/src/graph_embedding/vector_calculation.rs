@@ -2,13 +2,12 @@ use crate::{types::VertexEmbeddings, LayeredGraph};
 
 pub fn calculate_q_vector(
     graph: &LayeredGraph,
+    edge_flows: &Vec<Vec<usize>>,
     number_of_regarded_vertices: usize,
     number_of_edges: usize,
     alpha: f64,
 ) -> Vec<f64> {
     // calculate q-vector for clarabel
-    let edge_flows = graph.calculate_edge_flows();
-
     let mut q = vec![0.0 as f64; 2 * number_of_regarded_vertices + number_of_edges];
 
     let mut edge_index = 0;

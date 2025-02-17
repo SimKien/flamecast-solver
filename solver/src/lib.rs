@@ -6,7 +6,6 @@ mod simulated_annealing;
 mod tests;
 mod timer;
 mod types;
-mod variable_neighborhood_search;
 
 use graph_embedding::embed_directed_graph;
 pub use graph_embedding::{EmbeddingOptions, SearchDepth};
@@ -60,16 +59,31 @@ pub fn embed_graph(
     alpha: f64,
     options: &EmbeddingOptions,
 ) -> GraphEmbedding {
-    let graph_embedding = embed_directed_graph(&graph, sources_drains_embeddings, alpha, options);
+    let graph_embedding = embed_directed_graph(
+        &graph,
+        sources_drains_embeddings,
+        &graph.calculate_edge_flows(),
+        alpha,
+        options,
+    );
     return GraphEmbedding::new(graph, graph_embedding);
 }
 
-pub fn plot_graph(file_path: &str, embedded_graph: &GraphEmbedding, show_layers: bool) {
-    plot_embedded_graph(file_path, embedded_graph, show_layers);
+pub fn plot_graph(
+    file_path: &str,
+    embedded_graph: &GraphEmbedding,
+    show_layers: bool,
+    show_indices: bool,
+) {
+    plot_embedded_graph(file_path, embedded_graph, show_layers, show_indices);
 }
 
-pub fn plot_vertices(file_path: &str, plotting_vertices: Vec<PlottingVertices>) {
-    plot_vertices_with_colors(file_path, &plotting_vertices);
+pub fn plot_vertices(
+    file_path: &str,
+    plotting_vertices: Vec<PlottingVertices>,
+    show_indices: bool,
+) {
+    plot_vertices_with_colors(file_path, &plotting_vertices, show_indices);
 }
 
 pub fn get_test_graph(index: usize) -> TestGraph {

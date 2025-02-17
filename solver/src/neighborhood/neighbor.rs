@@ -51,4 +51,12 @@ impl NeighborCost {
     pub fn new(neighbor: Neighbor, cost: f64) -> Self {
         Self { neighbor, cost }
     }
+
+    pub fn min<'a>(&'a self, other: &'a Self) -> &'a Self {
+        if self.cost < other.cost {
+            self
+        } else {
+            other
+        }
+    }
 }

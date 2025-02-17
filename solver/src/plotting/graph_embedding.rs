@@ -10,7 +10,12 @@ use super::{
     create_edge, create_node, DISTINCT_COLORS, NUM_DISTINCT_COLORS, ROOT_HEIGHT, ROOT_WIDTH,
 };
 
-pub fn plot_embedded_graph(file_path: &str, embedded_graph: &GraphEmbedding, show_layers: bool) {
+pub fn plot_embedded_graph(
+    file_path: &str,
+    embedded_graph: &GraphEmbedding,
+    show_layers: bool,
+    show_indices: bool,
+) {
     let root = BitMapBackend::new(file_path, (ROOT_WIDTH, ROOT_HEIGHT)).into_drawing_area();
 
     // Set background color
@@ -38,10 +43,15 @@ pub fn plot_embedded_graph(file_path: &str, embedded_graph: &GraphEmbedding, sho
 
         // Draw vertices
         for (vertex_index, _) in layer.vertices.iter().enumerate() {
+            let index = if show_indices {
+                Some(vertex_index)
+            } else {
+                None
+            };
             root.draw(&create_node(
                 &embeddings.embeddings[layer_index][vertex_index],
                 vertex_colors[layer_index],
-                vertex_index,
+                index,
             ))
             .unwrap();
         }

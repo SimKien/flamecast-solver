@@ -28,4 +28,14 @@ impl CoolingSchedule {
             CoolingSchedule::Logarithmic(alpha) => format!("Logarithmic({})", alpha),
         }
     }
+
+    pub fn from_string(str: &str, alpha: f64) -> Option<Self> {
+        match str {
+            "lin" => Some(Self::Linear(alpha)),
+            "fas" => Some(Self::Fast(alpha)),
+            "exp" => Some(Self::Exponential(alpha)),
+            "log" => Some(Self::Logarithmic(alpha)),
+            _ => None,
+        }
+    }
 }
