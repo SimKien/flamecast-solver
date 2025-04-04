@@ -43,4 +43,14 @@ impl EmbeddingOptions {
             verbose,
         }
     }
+
+    pub fn from_depth(depth: SearchDepth) -> Self {
+        EmbeddingOptions {
+            print_embedding_infos: false,
+            search_depth: depth,
+            time_limit: f64::INFINITY,
+            show_calculated_actual_edge_length_diff: false,
+            verbose: false,
+        }
+    }
 }

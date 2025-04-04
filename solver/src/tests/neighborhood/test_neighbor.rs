@@ -7,6 +7,8 @@ use crate::{
 use super::calculate_all_neighbors;
 #[cfg(test)]
 use super::NEIGHBORHOOD_TEST_INSTANCES;
+#[cfg(test)]
+use crate::InitialSolutionFunction;
 
 #[cfg(test)]
 fn process_test_instance(instance: &mut FlamecastInstance, index: usize) {
@@ -92,6 +94,7 @@ fn test_neighbors_random_graph1() {
         test_instance.num_layers,
         test_instance.capacities,
         test_instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
 
     process_test_instance(&mut instance, 1);
@@ -105,6 +108,7 @@ fn test_neighbors_random_graph2() {
         test_instance.num_layers,
         test_instance.capacities,
         test_instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
 
     process_test_instance(&mut instance, 2);
@@ -118,6 +122,7 @@ fn test_neighbors_random_graph3() {
         test_instance.num_layers,
         test_instance.capacities,
         test_instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
 
     process_test_instance(&mut instance, 3);
@@ -131,6 +136,7 @@ fn test_neighbors_random_graph4() {
         test_instance.num_layers,
         test_instance.capacities,
         test_instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
 
     process_test_instance(&mut instance, 4);

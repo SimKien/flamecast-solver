@@ -206,7 +206,7 @@ impl LayeredGraph {
     }
 
     pub fn add_vertex_at_position(&mut self, vertex: Vertex, vertex_id: &VertexID) {
-        // add a vertex at a specific position of the graph
+        // add a vertex at a specific position of the graph, used for merge and split operations
         let layer_index = vertex_id.layer;
 
         self.add_vertex_to_layer(layer_index, vertex);
@@ -214,6 +214,26 @@ impl LayeredGraph {
             vertex_id,
             &VertexID::new(layer_index, self.layers[layer_index].vertices.len() - 1),
         );
+    }
+
+    pub fn set_vertex_at_position(&mut self, vertex_id: &VertexID, vertex: Vertex) {
+        // set a vertex at a specific position of the graph, assuming no vertex exists at that position
+        let (first, last) = self.layers.split_at_mut(vertex_id.layer);
+
+        if let Some(children_indices) = &vertex.children_indices {
+            let children_layer = &mut first[vertex_id.layer - 1];
+            children_indices.iter().for_each(|child_index| {
+                let child = &mut children_layer.vertices[*child_index];
+                child.set_parent(Some(vertex_id.index));
+            });
+        }
+
+        if let Some(parent_index) = vertex.parent_index {
+            let parent = &mut last[1].vertices[parent_index];
+            parent.add_child(vertex_id.index);
+        }
+
+        self.layers[vertex_id.layer].vertices[vertex_id.index] = vertex;
     }
 
     pub fn remove_vertex(&mut self, vertex: &VertexID) {
@@ -398,11 +418,11 @@ impl LayeredGraph {
         // get the neighbours of a vertex
         let mut neighbours = Vec::new();
 
-        if vertex.layer != self.layers.len() - 1 {
-            neighbours.push(self.get_parent(vertex).unwrap());
+        if let Some(parent) = self.get_parent(vertex) {
+            neighbours.push(parent);
         }
-        if vertex.layer != 0 {
-            neighbours.append(&mut self.get_children(vertex).unwrap());
+        if let Some(children) = self.get_children(vertex) {
+            neighbours.append(&mut children.clone());
         }
 
         return neighbours;
@@ -543,6 +563,7 @@ impl LayeredGraph {
 
         if visited_vertices
             .iter()
+            .take(num_layers - 1)
             .any(|layer| layer.iter().any(|vertex| !vertex))
         {
             return false;

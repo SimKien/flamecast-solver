@@ -1,3 +1,5 @@
+#![cfg(test)]
+use crate::InitialSolutionFunction;
 #[cfg(test)]
 use crate::{tests::embedding::compare_with_generalized_weiszfeld, FlamecastInstance};
 
@@ -31,109 +33,222 @@ fn validate_initial_flamecast_instance(instance: &FlamecastInstance, index: usiz
 }
 
 #[test]
-fn test_predefined_initial_flamecast_instance1() {
+fn test_predefined_initial_random_flamecast_instance1() {
     let instance = FLAMECAST_TEST_INSTANCES[0].clone();
     let initial_instance = FlamecastInstance::new(
         instance.alpha,
         instance.num_layers,
         instance.capacities,
         instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
     validate_initial_flamecast_instance(&initial_instance, 0);
 }
 
 #[test]
-fn test_predefined_initial_flamecast_instance2() {
+fn test_predefined_initial_random_flamecast_instance2() {
     let instance = FLAMECAST_TEST_INSTANCES[1].clone();
     let initial_instance = FlamecastInstance::new(
         instance.alpha,
         instance.num_layers,
         instance.capacities,
         instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
     validate_initial_flamecast_instance(&initial_instance, 1);
 }
 
 #[test]
-fn test_predefined_initial_flamecast_instance3() {
+fn test_predefined_initial_random_flamecast_instance3() {
     let instance = FLAMECAST_TEST_INSTANCES[2].clone();
     let initial_instance = FlamecastInstance::new(
         instance.alpha,
         instance.num_layers,
         instance.capacities,
         instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
     validate_initial_flamecast_instance(&initial_instance, 2);
 }
 
 #[test]
-fn test_random_initial_flamecast_instance1() {
+fn test_random_initial_random_flamecast_instance1() {
     let instance = generate_random_flamecast_instance(6, 100, 10, true);
     let initial_instance = FlamecastInstance::new(
         instance.alpha,
         instance.num_layers,
         instance.capacities,
         instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
     validate_initial_flamecast_instance(&initial_instance, 3);
 }
 
 #[test]
-fn test_random_initial_flamecast_instance2() {
+fn test_random_initial_random_flamecast_instance2() {
     let instance = generate_random_flamecast_instance(6, 1000, 10, true);
     let initial_instance = FlamecastInstance::new(
         instance.alpha,
         instance.num_layers,
         instance.capacities,
         instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
     validate_initial_flamecast_instance(&initial_instance, 4);
 }
 
 #[test]
-fn test_random_initial_flamecast_instance3() {
+fn test_random_initial_random_flamecast_instance3() {
     let instance = generate_random_flamecast_instance(6, 10000, 20, true);
     let initial_instance = FlamecastInstance::new(
         instance.alpha,
         instance.num_layers,
         instance.capacities,
         instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
     validate_initial_flamecast_instance(&initial_instance, 5);
 }
 
 #[test]
-fn test_random_initial_flamecast_instance4() {
+fn test_random_initial_random_flamecast_instance4() {
     let instance = generate_random_flamecast_instance(6, 500, 100, false);
     let initial_instance = FlamecastInstance::new(
         instance.alpha,
         instance.num_layers,
         instance.capacities,
         instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
     validate_initial_flamecast_instance(&initial_instance, 6);
 }
 
 #[test]
-fn test_random_initial_flamecast_instance5() {
+fn test_random_initial_random_flamecast_instance5() {
     let instance = generate_random_flamecast_instance(6, 100, 100, true);
     let initial_instance = FlamecastInstance::new(
         instance.alpha,
         instance.num_layers,
         instance.capacities,
         instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
     );
     validate_initial_flamecast_instance(&initial_instance, 7);
 }
 
 #[test]
-fn test_random_initial_flamecast_instance6() {
+fn test_random_initial_random_flamecast_instance6() {
     let instance = generate_random_flamecast_instance(5, 800, 40, true);
     let initial_instance = FlamecastInstance::new(
         instance.alpha,
         instance.num_layers,
         instance.capacities,
         instance.sources_drains_embeddings,
+        InitialSolutionFunction::Random,
+    );
+    validate_initial_flamecast_instance(&initial_instance, 8);
+}
+
+#[test]
+fn test_predefined_initial_matching_flamecast_instance1() {
+    let instance = FLAMECAST_TEST_INSTANCES[0].clone();
+    let initial_instance = FlamecastInstance::new(
+        instance.alpha,
+        instance.num_layers,
+        instance.capacities,
+        instance.sources_drains_embeddings,
+        InitialSolutionFunction::Matching,
+    );
+    validate_initial_flamecast_instance(&initial_instance, 0);
+}
+
+#[test]
+fn test_predefined_initial_matching_flamecast_instance2() {
+    let instance = FLAMECAST_TEST_INSTANCES[1].clone();
+    let initial_instance = FlamecastInstance::new(
+        instance.alpha,
+        instance.num_layers,
+        instance.capacities,
+        instance.sources_drains_embeddings,
+        InitialSolutionFunction::Matching,
+    );
+    validate_initial_flamecast_instance(&initial_instance, 1);
+}
+
+#[test]
+fn test_predefined_initial_matching_flamecast_instance3() {
+    let instance = FLAMECAST_TEST_INSTANCES[2].clone();
+    let initial_instance = FlamecastInstance::new(
+        instance.alpha,
+        instance.num_layers,
+        instance.capacities,
+        instance.sources_drains_embeddings,
+        InitialSolutionFunction::Matching,
+    );
+    validate_initial_flamecast_instance(&initial_instance, 2);
+}
+
+#[test]
+fn test_random_initial_matching_flamecast_instance1() {
+    let instance = generate_random_flamecast_instance(6, 100, 10, true);
+    let initial_instance = FlamecastInstance::new(
+        instance.alpha,
+        instance.num_layers,
+        instance.capacities,
+        instance.sources_drains_embeddings,
+        InitialSolutionFunction::Matching,
+    );
+    validate_initial_flamecast_instance(&initial_instance, 3);
+}
+
+#[test]
+fn test_random_initial_matching_flamecast_instance2() {
+    let instance = generate_random_flamecast_instance(6, 1000, 10, true);
+    let initial_instance = FlamecastInstance::new(
+        instance.alpha,
+        instance.num_layers,
+        instance.capacities,
+        instance.sources_drains_embeddings,
+        InitialSolutionFunction::Matching,
+    );
+    validate_initial_flamecast_instance(&initial_instance, 4);
+}
+
+#[test]
+fn test_random_initial_matching_flamecast_instance3() {
+    let instance = generate_random_flamecast_instance(6, 500, 100, false);
+    let initial_instance = FlamecastInstance::new(
+        instance.alpha,
+        instance.num_layers,
+        instance.capacities,
+        instance.sources_drains_embeddings,
+        InitialSolutionFunction::Matching,
+    );
+    validate_initial_flamecast_instance(&initial_instance, 6);
+}
+
+#[test]
+fn test_random_initial_matching_flamecast_instance4() {
+    let instance = generate_random_flamecast_instance(6, 100, 100, true);
+    let initial_instance = FlamecastInstance::new(
+        instance.alpha,
+        instance.num_layers,
+        instance.capacities,
+        instance.sources_drains_embeddings,
+        InitialSolutionFunction::Matching,
+    );
+    validate_initial_flamecast_instance(&initial_instance, 7);
+}
+
+#[test]
+fn test_random_initial_matching_flamecast_instance5() {
+    let instance = generate_random_flamecast_instance(5, 800, 40, true);
+    let initial_instance = FlamecastInstance::new(
+        instance.alpha,
+        instance.num_layers,
+        instance.capacities,
+        instance.sources_drains_embeddings,
+        InitialSolutionFunction::Matching,
     );
     validate_initial_flamecast_instance(&initial_instance, 8);
 }

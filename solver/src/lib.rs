@@ -7,18 +7,23 @@ mod tests;
 mod timer;
 mod types;
 
+use chrono::TimeDelta;
 use graph_embedding::embed_directed_graph;
 pub use graph_embedding::{EmbeddingOptions, SearchDepth};
 use graph_generation::generate_random_directed_graph;
 pub use neighborhood::Neighbor;
 pub use plotting::PlottingVertices;
 use plotting::{plot_embedded_graph, plot_vertices_with_colors};
-pub use simulated_annealing::{CoolingSchedule, NeighborSearchOption, OptimizationOptions};
+pub use simulated_annealing::{
+    CoolingSchedule, InitialSolutionFunction, NeighborSearchOption, OptimizationOptions,
+    SimulatedAnnealingLogger,
+};
 use tests::{
     combine_test_graphs, generate_random_flamecast_instance, FLAMECAST_TEST_INSTANCES,
     NEIGHBORHOOD_TEST_INSTANCES, TESTGRAPHS,
 };
 pub use tests::{FlamecastTestInstance, TestGraph};
+use timer::get_time_diff_pretty;
 pub use timer::Stopwatch;
 pub use types::*;
 
@@ -49,8 +54,15 @@ pub fn generate_flamecast_instance(
     num_layers: usize,
     capacities: Vec<usize>,
     sources_drains_embeddings: VertexEmbeddings,
+    initial_solution_function: InitialSolutionFunction,
 ) -> FlamecastInstance {
-    return FlamecastInstance::new(alpha, num_layers, capacities, sources_drains_embeddings);
+    return FlamecastInstance::new(
+        alpha,
+        num_layers,
+        capacities,
+        sources_drains_embeddings,
+        initial_solution_function,
+    );
 }
 
 pub fn embed_graph(
@@ -112,4 +124,8 @@ pub fn get_neighborhood_test_instance(index: usize) -> FlamecastInstance {
 
 pub fn get_neighborhood_test_instances_len() -> usize {
     return NEIGHBORHOOD_TEST_INSTANCES.len();
+}
+
+pub fn get_time_diff_string(delta: TimeDelta) -> String {
+    return get_time_diff_pretty(delta);
 }

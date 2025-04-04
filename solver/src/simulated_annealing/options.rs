@@ -6,6 +6,29 @@ pub enum NeighborSearchOption {
     CompleteHeuristical,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InitialSolutionFunction {
+    Random,
+    Matching,
+}
+
+impl InitialSolutionFunction {
+    pub fn iterate() -> impl Iterator<Item = Self> {
+        vec![
+            InitialSolutionFunction::Random,
+            InitialSolutionFunction::Matching,
+        ]
+        .into_iter()
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            InitialSolutionFunction::Random => "random".to_string(),
+            InitialSolutionFunction::Matching => "matching".to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct OptimizationOptions {
     pub cooling_schedule: CoolingSchedule,

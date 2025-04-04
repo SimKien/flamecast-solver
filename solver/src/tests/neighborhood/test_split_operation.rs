@@ -11,8 +11,17 @@ fn process_split_operation(
     num_sources: usize,
     num_drains: usize,
 ) {
-    let mut graph =
-        generate_random_flamecast_graph(num_layers, capacities, num_sources, num_drains);
+    use crate::tests::create_random_source_embeddings;
+
+    let sources_embeddings = create_random_source_embeddings(num_sources);
+
+    let mut graph = generate_random_flamecast_graph(
+        num_layers,
+        capacities,
+        num_sources,
+        num_drains,
+        &sources_embeddings,
+    );
     let graph_copy = graph.clone();
 
     let split_node = calculate_random_split_candidate(&graph, num_layers);

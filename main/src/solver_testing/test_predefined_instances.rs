@@ -2,8 +2,8 @@ use std::{fs, io::Write};
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use solver::{
-    generate_flamecast_instance, EmbeddingOptions, FlamecastTestInstance, NeighborSearchOption,
-    OptimizationOptions,
+    generate_flamecast_instance, EmbeddingOptions, FlamecastTestInstance, InitialSolutionFunction,
+    NeighborSearchOption, OptimizationOptions,
 };
 
 use crate::solver_testing::PREDEFINED_BASE_PATH;
@@ -66,6 +66,7 @@ pub fn solve_processing_instance(processing_instance: &ProcessingInstance, base_
             .instance
             .sources_drains_embeddings
             .clone(),
+        InitialSolutionFunction::Random,
     );
 
     instance.plot_current_solution(
@@ -85,7 +86,7 @@ pub fn solve_processing_instance(processing_instance: &ProcessingInstance, base_
 
     instance.solve(
         processing_instance.optimization_option.clone(),
-        Some(&mut log_file),
+        //Some(&mut log_file),
     );
 
     log_file.flush().unwrap();

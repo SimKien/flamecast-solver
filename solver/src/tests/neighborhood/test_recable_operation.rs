@@ -11,8 +11,17 @@ fn process_recable_operation(
     num_sources: usize,
     num_drains: usize,
 ) {
-    let mut graph =
-        generate_random_flamecast_graph(num_layers, capacities, num_sources, num_drains);
+    use crate::tests::create_random_source_embeddings;
+
+    let sources_embeddings = create_random_source_embeddings(num_sources);
+
+    let mut graph = generate_random_flamecast_graph(
+        num_layers,
+        capacities,
+        num_sources,
+        num_drains,
+        &sources_embeddings,
+    );
     let graph_copy = graph.clone();
 
     let mut rng = rand::thread_rng();
@@ -70,7 +79,7 @@ fn process_recable_operation(
 
 #[test]
 fn test_recable_operation1() {
-    process_recable_operation(3, &vec![2, 2, 2], 2, 2);
+    process_recable_operation(3, &vec![2, 2, 2], 20, 20);
 }
 
 #[test]

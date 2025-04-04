@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use super::{InstancesArgs, NeighborhoodArgs};
+use super::{BAArgs, InstancesArgs, NeighborhoodArgs};
 
 #[derive(Parser)]
 #[command(
@@ -15,6 +15,8 @@ pub struct MainArgs {
 
 #[derive(Subcommand)]
 pub enum FirstLevelCommand {
+    /// Run Bachelor Thesis Tests.
+    BA(BAArgs),
     /// Run operations on Flamecast instances.
     Instances(InstancesArgs),
     /// Run neighborhood operations

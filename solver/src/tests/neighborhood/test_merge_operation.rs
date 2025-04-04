@@ -14,8 +14,17 @@ fn process_merge_operation(
     num_sources: usize,
     num_drains: usize,
 ) {
-    let mut graph =
-        generate_random_flamecast_graph(num_layers, capacities, num_sources, num_drains);
+    use crate::tests::create_random_source_embeddings;
+
+    let sources_embeddings = create_random_source_embeddings(num_sources);
+
+    let mut graph = generate_random_flamecast_graph(
+        num_layers,
+        capacities,
+        num_sources,
+        num_drains,
+        &sources_embeddings,
+    );
     let graph_copy = graph.clone();
 
     let merge_pair = calculate_random_merge_pair(&graph, num_layers);

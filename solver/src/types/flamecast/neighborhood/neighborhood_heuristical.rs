@@ -15,7 +15,7 @@ impl FlamecastInstance {
     ) -> Vec<NeighborCost> {
         let base_graph = &self.solution_state.current_solution.base_graph;
 
-        // pick sqrt(n) amount of random vertices for neighborhood calculation
+        // pick sqrt(n) amount of random vertices for neighborhood calculation if under threshold
         let num_vertices = base_graph.get_number_of_vertices();
         let num_random_vertices = if num_vertices < FIXED_NUMBER_RANDOM_VERTICES_THRESHOLD {
             f64::sqrt(num_vertices as f64) as usize
@@ -62,6 +62,8 @@ impl FlamecastInstance {
         current_vertex_flows: &Vec<Vec<usize>>,
     ) -> Vec<NeighborCost> {
         let base_graph = &self.solution_state.current_solution.base_graph;
+        let num_layers = base_graph.layers.len();
+
         let embeddings = &self
             .solution_state
             .current_solution
@@ -86,6 +88,7 @@ impl FlamecastInstance {
 
                 if base_graph.check_recable_possible(
                     vertex,
+                    num_layers,
                     &target_node_id,
                     &self.capacities,
                     current_vertex_flows,

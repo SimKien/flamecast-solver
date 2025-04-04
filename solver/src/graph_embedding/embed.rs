@@ -15,6 +15,11 @@ pub fn embed_directed_graph(
     alpha: f64,
     options: &EmbeddingOptions,
 ) -> VertexEmbeddings {
+    if graph.layers.len() == 2 {
+        // if the graph has only two layers, we can just return the source and drain embeddings
+        return sources_drains_embeddings.clone();
+    }
+
     // embed the graph using clarabel
     // assertions: valid flamecast graph
     let number_of_vertices = graph.get_number_of_vertices();

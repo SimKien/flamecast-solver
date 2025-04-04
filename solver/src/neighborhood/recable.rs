@@ -13,6 +13,7 @@ impl LayeredGraph {
     pub fn check_recable_possible(
         &self,
         node: &VertexID,
+        num_layers: usize,
         target_node: &VertexID,
         capacities: &Vec<usize>,
         current_vertex_flows: &Vec<Vec<usize>>,
@@ -25,13 +26,17 @@ impl LayeredGraph {
             return false;
         }
 
-        if old_parent.children_indices.as_ref().unwrap().len() == 1 {
+        if old_parent.children_indices.as_ref().unwrap().len() == 1
+            && old_parent_id.layer != num_layers - 1
+        {
             return false;
         }
 
         let node_flow = current_vertex_flows[node.layer][node.index];
 
-        if current_vertex_flows[target_node.layer][target_node.index] + node_flow > capacities[target_node.layer] {
+        if current_vertex_flows[target_node.layer][target_node.index] + node_flow
+            > capacities[target_node.layer]
+        {
             return false;
         }
 
@@ -41,13 +46,16 @@ impl LayeredGraph {
 
         while current_vertex.parent_index.is_some() {
             let parent_id = VertexID::new(current_layer, current_vertex.parent_index.unwrap());
-            let initial_parent_id = VertexID::new(current_layer, current_initial_vertex.parent_index.unwrap());
+            let initial_parent_id =
+                VertexID::new(current_layer, current_initial_vertex.parent_index.unwrap());
 
             if parent_id.index == initial_parent_id.index {
                 break;
             }
 
-            if current_vertex_flows[parent_id.layer][parent_id.index] + node_flow > capacities[parent_id.layer] {
+            if current_vertex_flows[parent_id.layer][parent_id.index] + node_flow
+                > capacities[parent_id.layer]
+            {
                 return false;
             }
 

@@ -1,5 +1,8 @@
 use clap::Args;
-use solver::{generate_flamecast_instance, generate_random_flamecast_test_instance, Stopwatch};
+use solver::{
+    generate_flamecast_instance, generate_random_flamecast_test_instance, InitialSolutionFunction,
+    Stopwatch,
+};
 
 use crate::solver_testing::INSTANCES;
 
@@ -32,6 +35,7 @@ pub fn process_size(args: SizeArgs) {
                 flamecast_test_instance.num_layers,
                 flamecast_test_instance.capacities,
                 flamecast_test_instance.sources_drains_embeddings,
+                InitialSolutionFunction::Random,
             );
 
             let stop_watch = if args.time {

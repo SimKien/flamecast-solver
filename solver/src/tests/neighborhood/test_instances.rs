@@ -1,7 +1,8 @@
 use std::sync::LazyLock;
 
 use crate::{
-    FlamecastInstance, GraphEmbedding, Layer, LayeredGraph, SolutionState, Vertex, VertexEmbeddings,
+    FlamecastInstance, GraphEmbedding, Layer, LayeredGraph, SimulatedAnnealingLogger,
+    SolutionState, Vertex, VertexEmbeddings,
 };
 
 const NEIGHBORHOOD_TEST_INSTANCE1: LazyLock<FlamecastInstance> =
@@ -45,6 +46,7 @@ const NEIGHBORHOOD_TEST_INSTANCE1: LazyLock<FlamecastInstance> =
             ]),
             VertexEmbeddings::new(),
         )),
+        logger: SimulatedAnnealingLogger::new_empty(),
     });
 
 pub const NEIGHBORHOOD_TEST_INSTANCES: [LazyLock<FlamecastInstance>; 1] =

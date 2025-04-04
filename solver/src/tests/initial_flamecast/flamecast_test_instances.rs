@@ -14,6 +14,20 @@ pub struct FlamecastTestInstance {
 }
 
 impl FlamecastTestInstance {
+    pub fn new(
+        alpha: f64,
+        num_layers: usize,
+        capacities: Vec<usize>,
+        sources_drains_embeddings: VertexEmbeddings,
+    ) -> Self {
+        FlamecastTestInstance {
+            alpha,
+            num_layers,
+            capacities,
+            sources_drains_embeddings,
+        }
+    }
+
     pub fn plot_instance(&self, file_path: &str) {
         plot_flamecast_test_instance(self, file_path, true);
     }
@@ -120,10 +134,5 @@ pub fn generate_random_flamecast_instance(
         sources_drains_embeddings.embeddings[num_layers - 1].push((x, y));
     });
 
-    FlamecastTestInstance {
-        alpha,
-        num_layers,
-        capacities,
-        sources_drains_embeddings,
-    }
+    FlamecastTestInstance::new(alpha, num_layers, capacities, sources_drains_embeddings)
 }

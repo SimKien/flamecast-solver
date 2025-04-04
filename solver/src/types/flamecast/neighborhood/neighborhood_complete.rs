@@ -62,6 +62,7 @@ impl FlamecastInstance {
 
                     if base_graph.check_recable_possible(
                         &node_id,
+                        num_layers,
                         &target_node_id,
                         &self.capacities,
                         current_vertex_flows,

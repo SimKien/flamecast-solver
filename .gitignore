@@ -22,6 +22,8 @@ solver/test_neighbor/*
 
 solver_test/*/*
 
+ba/predefined_solutions/*
+
 .vscode
 
 # RustRover

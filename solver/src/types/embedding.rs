@@ -49,6 +49,13 @@ impl GraphEmbedding {
         }
     }
 
+    pub fn new_empty() -> Self {
+        Self {
+            base_graph: LayeredGraph::new_empty(),
+            vertices_embeddings: VertexEmbeddings::new(),
+        }
+    }
+
     pub fn calculate_costs(&self, alpha: f64) -> f64 {
         // calculate the cost of the embedding, assumes a valid flamecast graph
         let edge_flows = self.base_graph.calculate_edge_flows();

@@ -4,7 +4,7 @@ use plotters::{
 };
 use rand::{seq::SliceRandom, thread_rng};
 
-use crate::{GraphEmbedding, LayeredGraph};
+use crate::{GraphEmbedding, LayeredGraph, VertexEmbeddings};
 
 use super::{
     create_edge, create_node, DISTINCT_COLORS, NUM_DISTINCT_COLORS, ROOT_HEIGHT, ROOT_WIDTH,
@@ -16,6 +16,33 @@ pub fn plot_embedded_graph(
     show_layers: bool,
     show_indices: bool,
 ) {
+    let graph = &embedded_graph.base_graph;
+    let original_embeddings = &embedded_graph.vertices_embeddings;
+
+    let x_values: Vec<f64> = original_embeddings
+        .embeddings
+        .iter()
+        .flat_map(|layer| layer.iter().map(|vertex| vertex.0))
+        .collect();
+    let y_values: Vec<f64> = original_embeddings
+        .embeddings
+        .iter()
+        .flat_map(|layer| layer.iter().map(|vertex| vertex.1))
+        .collect();
+
+    let min_x = x_values
+        .iter()
+        .cloned()
+        .fold(f64::INFINITY, |a, b| a.min(b));
+    let max_x = x_values.iter().fold(f64::NEG_INFINITY, |a, b| a.max(*b));
+    let min_y = y_values
+        .iter()
+        .cloned()
+        .fold(f64::INFINITY, |a, b| a.min(b));
+    let max_y = y_values.iter().fold(f64::NEG_INFINITY, |a, b| a.max(*b));
+
+    let embeddings = normalize_vertex_embeddings(original_embeddings, min_x, min_y, max_x, max_y);
+
     let root = BitMapBackend::new(file_path, (ROOT_WIDTH, ROOT_HEIGHT)).into_drawing_area();
 
     // Set background color
@@ -23,9 +50,6 @@ pub fn plot_embedded_graph(
 
     // Calculate vertex colors for nodes
     let vertex_colors = calculate_vertex_colors(&embedded_graph.base_graph, show_layers);
-
-    let graph = &embedded_graph.base_graph;
-    let embeddings = &embedded_graph.vertices_embeddings;
 
     // Draw vertices and edges for each layer
     for (layer_index, layer) in graph.layers.iter().enumerate() {
@@ -56,8 +80,48 @@ pub fn plot_embedded_graph(
             .unwrap();
         }
     }
+}
 
-    root.present().unwrap();
+pub fn normalize_vertex_embeddings(
+    embeddings: &VertexEmbeddings,
+    min_x: f64,
+    min_y: f64,
+    max_x: f64,
+    max_y: f64,
+) -> VertexEmbeddings {
+    let mut normalized_embeddings = VertexEmbeddings::new_with_size(embeddings.embeddings.len());
+
+    let is_x_biggest = (max_x - min_x) > (max_y - min_y);
+    let (size, padding) = if is_x_biggest {
+        (
+            max_x - min_x,
+            (max_x - min_x - (max_y - min_y)) / (2.0 * (max_x - min_x)),
+        )
+    } else {
+        (
+            max_y - min_y,
+            (max_y - min_y - (max_x - min_x)) / (2.0 * (max_y - min_y)),
+        )
+    };
+
+    for (layer_index, layer) in embeddings.embeddings.iter().enumerate() {
+        for vertex in layer.iter() {
+            let normalized_x = if is_x_biggest {
+                (vertex.0 - min_x) / size
+            } else {
+                (vertex.0 - min_x) / size + padding
+            };
+            let normalized_y = if is_x_biggest {
+                (vertex.1 - min_y) / size + padding
+            } else {
+                (vertex.1 - min_y) / size
+            };
+
+            normalized_embeddings.embeddings[layer_index].push((normalized_x, normalized_y));
+        }
+    }
+
+    return normalized_embeddings;
 }
 
 fn calculate_vertex_colors(graph: &LayeredGraph, show_layers: bool) -> Vec<RGBColor> {

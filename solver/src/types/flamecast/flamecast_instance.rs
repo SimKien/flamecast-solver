@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     graph_embedding::embed_directed_graph,
-    graph_generation::generate_random_flamecast_graph,
+    graph_generation::{generate_matching_flamecast_graph, generate_random_flamecast_graph},
     plotting::plot_embedded_graph,
-    simulated_annealing::{OptimizationOptions, SimulatedAnnealing},
-    EmbeddingOptions, GraphEmbedding, VertexEmbeddings,
+    simulated_annealing::{OptimizationOptions, SimulatedAnnealing, SimulatedAnnealingLogger},
+    EmbeddingOptions, GraphEmbedding, InitialSolutionFunction, VertexEmbeddings,
 };
 
 use super::SolutionState;
@@ -19,6 +19,7 @@ pub struct FlamecastInstance {
     pub capacities: Vec<usize>,
     pub sources_drains_embeddings: VertexEmbeddings,
     pub solution_state: SolutionState,
+    pub logger: SimulatedAnnealingLogger,
 }
 
 impl FlamecastInstance {
@@ -27,13 +28,24 @@ impl FlamecastInstance {
         num_layers: usize,
         capacities: Vec<usize>,
         sources_drains_embeddings: VertexEmbeddings,
+        initial_solution_function: InitialSolutionFunction,
     ) -> Self {
-        let initial_topology = generate_random_flamecast_graph(
-            num_layers,
-            &capacities,
-            sources_drains_embeddings.embeddings[0].len(),
-            sources_drains_embeddings.embeddings[num_layers - 1].len(),
-        );
+        let initial_topology = match initial_solution_function {
+            InitialSolutionFunction::Random => generate_random_flamecast_graph(
+                num_layers,
+                &capacities,
+                sources_drains_embeddings.embeddings[0].len(),
+                sources_drains_embeddings.embeddings[num_layers - 1].len(),
+                &sources_drains_embeddings.embeddings[0],
+            ),
+            InitialSolutionFunction::Matching => generate_matching_flamecast_graph(
+                num_layers,
+                &capacities,
+                sources_drains_embeddings.embeddings[0].len(),
+                sources_drains_embeddings.embeddings[num_layers - 1].len(),
+                &sources_drains_embeddings,
+            ),
+        };
         let initial_embedding = embed_directed_graph(
             &initial_topology,
             &sources_drains_embeddings,
@@ -52,6 +64,7 @@ impl FlamecastInstance {
             capacities,
             sources_drains_embeddings,
             solution_state: initial_solution_state,
+            logger: SimulatedAnnealingLogger::new_empty(),
         }
     }
 
@@ -98,13 +111,9 @@ impl FlamecastInstance {
         self.get_objective_function_value()
     }
 
-    pub fn solve<T: std::io::Write>(
-        &mut self,
-        options: OptimizationOptions,
-        printer: Option<&mut T>,
-    ) -> f64 {
+    pub fn solve(&mut self, options: OptimizationOptions) {
         let mut optimization_instance = SimulatedAnnealing::from_flamecast_instance(self, options);
 
-        return optimization_instance.solve(printer);
+        optimization_instance.solve();
     }
 }
