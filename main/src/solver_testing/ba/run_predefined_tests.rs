@@ -12,9 +12,9 @@ use solver::{FlamecastTestInstance, InitialSolutionFunction, VertexEmbeddings};
 
 use super::run_test;
 
-const PREDEFINED_INSTANCES_BASE_DIR: &str = "./ba/predefined";
-const PREDEFINED_SOLUTIONS_BASE_DIR: &str = "./ba/predefined_solutions";
-const ALPHA_FILE: &str = "./ba/options/alpha.json";
+pub const PREDEFINED_INSTANCES_BASE_DIR: &str = "./ba/predefined";
+pub const PREDEFINED_SOLUTIONS_BASE_DIR: &str = "./ba/predefined_solutions";
+pub const ALPHA_FILE: &str = "./ba/options/alpha.json";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PredefinedInstances {

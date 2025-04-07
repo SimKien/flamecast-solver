@@ -9,6 +9,8 @@ edition = "2021"
 solver = { path = "../solver" }
 serde = "1.0.217"
 serde_json = "1.0.137"
+rand = "0.8.4"
+plotters = "0.3.3"
 num_cpus = "1.16.0"
 clap = { version = "4.5.27", features = ["derive"] }
 rayon = "1.10.0"

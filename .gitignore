@@ -22,7 +22,9 @@ solver/test_neighbor/*
 
 solver_test/*/*
 
-ba/predefined_solutions/*
+ba/solutions/*
+ba/instances/*
+ba/charts/*
 
 .vscode
 
