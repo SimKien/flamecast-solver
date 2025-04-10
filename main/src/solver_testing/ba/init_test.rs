@@ -6,13 +6,20 @@ use rayon::{
 };
 use solver::{FlamecastTestInstance, InitialSolutionFunction, VertexEmbeddings};
 
-use super::{get_alpha_options, run_test, FlamecastBaseInstance, INSTANCES_DIR};
+use crate::solver_testing::{
+    get_init_options, get_num_instances, register_job_done, run_test, FlamecastBaseInstance,
+    INSTANCES_DIR,
+};
 
-pub const ALPHA_SOLUTIONS_DIR: &str = "./ba/solutions/alpha";
+const INIT_SOLUTIONS_DIR: &str = "./ba/solutions/init";
+const INIT_FUNCTION_TYPES: [InitialSolutionFunction; 2] = [
+    InitialSolutionFunction::Random,
+    InitialSolutionFunction::Matching,
+];
 
-pub const ALPHA_VALUES: [f64; 6] = [0.1, 0.3, 0.5, 0.7, 0.9, 1.0];
+const INIT_ALPHA: f64 = 0.1;
 
-pub fn process_test_alpha(dir_name: &String) {
+pub fn init_test(dir_name: &String) {
     ThreadPoolBuilder::new()
         .num_threads(num_cpus::get())
         .build_global()
@@ -25,9 +32,13 @@ pub fn process_test_alpha(dir_name: &String) {
         return;
     }
 
-    for alpha in ALPHA_VALUES.iter() {
-        let alpha_string = alpha.to_string().replace('.', "_");
-        let solution_dir = format!("{}/{}/{}", ALPHA_SOLUTIONS_DIR, alpha_string, dir_name);
+    for init_solution in INIT_FUNCTION_TYPES.iter() {
+        let solution_dir = format!(
+            "{}/{}/{}",
+            INIT_SOLUTIONS_DIR,
+            init_solution.to_string(),
+            dir_name
+        );
         if !std::path::Path::new(&solution_dir).exists() {
             std::fs::create_dir_all(&solution_dir).expect("Failed to create directory");
         } else {
@@ -46,7 +57,7 @@ pub fn process_test_alpha(dir_name: &String) {
         .collect::<Vec<DirEntry>>();
 
     let done_jobs = Mutex::new(0);
-    let total_jobs = get_num_instances(&entries) * ALPHA_VALUES.len();
+    let total_jobs = get_num_instances(&entries) * INIT_FUNCTION_TYPES.len();
     println!("Total jobs: {}", total_jobs);
     println!("Starting jobs...");
 
@@ -57,28 +68,32 @@ pub fn process_test_alpha(dir_name: &String) {
             let base_instance = FlamecastBaseInstance::from_file(&file_path.display().to_string());
             let instance_name = file_path.file_stem().unwrap().to_str().unwrap();
 
-            ALPHA_VALUES.par_iter().for_each(|alpha| {
+            INIT_FUNCTION_TYPES.par_iter().for_each(|init_function| {
+                let solution_dir = format!(
+                    "{}/{}/{}",
+                    INIT_SOLUTIONS_DIR,
+                    init_function.to_string(),
+                    dir_name
+                );
+
                 let mut sources_drains_embeddings =
                     VertexEmbeddings::new_with_size(base_instance.layers);
                 sources_drains_embeddings.embeddings[0] = base_instance.sources.clone();
                 sources_drains_embeddings.embeddings[base_instance.layers - 1] =
                     base_instance.drains.clone();
                 let instance = FlamecastTestInstance::new(
-                    *alpha,
+                    INIT_ALPHA,
                     base_instance.layers,
                     base_instance.capacities.clone(),
                     sources_drains_embeddings,
                 );
 
-                let alpha_string = alpha.to_string().replace('.', "_");
-                let solution_dir = format!("{}/{}/{}", ALPHA_SOLUTIONS_DIR, alpha_string, dir_name);
-
                 run_test(
                     instance,
                     &solution_dir,
                     &instance_name.to_string(),
-                    InitialSolutionFunction::Matching,
-                    get_alpha_options,
+                    init_function.clone(),
+                    get_init_options,
                 );
 
                 register_job_done(&done_jobs, total_jobs);
@@ -87,23 +102,4 @@ pub fn process_test_alpha(dir_name: &String) {
     });
 
     println!("All jobs done!");
-}
-
-pub fn register_job_done(done_jobs: &Mutex<usize>, total_jobs: usize) {
-    let mut done_jobs = done_jobs.lock().unwrap();
-    *done_jobs += 1;
-    let jobs_done = *done_jobs;
-    println!(
-        "Progress: {}%",
-        (jobs_done as f32 / total_jobs as f32) * 100.0
-    );
-}
-
-pub fn get_num_instances(entries: &Vec<DirEntry>) -> usize {
-    entries
-        .iter()
-        .filter(|entry| {
-            entry.path().is_file() && entry.path().extension().map_or(false, |ext| ext == "json")
-        })
-        .count()
 }

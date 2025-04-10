@@ -147,6 +147,7 @@ fn get_processing_instances(predefined_instances_indexes: &Vec<usize>) -> Vec<Pr
                     optimization_option.0 .1,
                     NeighborSearchOption::CompleteHeuristical,
                     optimization_option.1,
+                    2,
                     true,
                     default_options.clone(),
                     default_options.clone(),

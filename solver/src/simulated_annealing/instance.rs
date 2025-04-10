@@ -20,6 +20,7 @@ pub struct SimulatedAnnealing<'a> {
     pub neighbor_search_option: NeighborSearchOption,
     pub iteration: usize,
     pub max_iterations: usize,
+    pub number_random_vertices: usize,
     pub verbose: bool,
     pub neighbor_test_options: EmbeddingOptions,
     pub neighbor_cost_options: EmbeddingOptions,
@@ -36,6 +37,7 @@ impl<'a> SimulatedAnnealing<'a> {
             .current_solution
             .calculate_costs(flamecast_instance.alpha);
         let logger = SimulatedAnnealingLogger::new(
+            flamecast_instance.logger.init_time.clone(),
             &flamecast_instance.solution_state.current_solution,
             current_objective_value,
             optimization_options.max_iterations,
@@ -51,6 +53,7 @@ impl<'a> SimulatedAnnealing<'a> {
             neighbor_search_option: optimization_options.neighbor_search_option,
             iteration: 0,
             max_iterations: optimization_options.max_iterations,
+            number_random_vertices: optimization_options.number_random_vertices,
             verbose: optimization_options.verbose,
             neighbor_test_options: optimization_options.neighbor_test_options,
             neighbor_cost_options: optimization_options.neighbor_cost_options,
@@ -65,7 +68,10 @@ impl<'a> SimulatedAnnealing<'a> {
                 .get_all_candidate_neighbors_cost(&self.neighbor_test_options),
             NeighborSearchOption::CompleteHeuristical => self
                 .flamecast_instance
-                .get_heuristical_candidate_neighbors_cost(&self.neighbor_test_options),
+                .get_heuristical_candidate_neighbors_cost(
+                    &self.neighbor_test_options,
+                    self.number_random_vertices,
+                ),
         };
     }
 
@@ -181,7 +187,7 @@ impl<'a> SimulatedAnnealing<'a> {
             self.neighbor_change(neighbor_cost, &possible_neighbor);
 
             // log the current state of the algorithm
-            let time_needed = current_iteration_watch.elapsed_pretty();
+            let time_needed = current_iteration_watch.elapsed();
             self.flamecast_instance.logger.log(
                 time_needed.clone(),
                 self.current_objective_value,
@@ -266,7 +272,7 @@ impl<'a> SimulatedAnnealing<'a> {
         self.flamecast_instance.logger.set_final_solution(
             &self.flamecast_instance.solution_state.current_solution,
             self.current_objective_value,
-            start_watch.elapsed_pretty(),
+            start_watch.elapsed(),
         );
 
         if self.verbose {

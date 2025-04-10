@@ -33,11 +33,41 @@ impl Neighbor {
         }
     }
 
+    pub fn is_recable(&self) -> bool {
+        match self {
+            Neighbor::Recable(_, _) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_swap(&self) -> bool {
+        match self {
+            Neighbor::Swap(_, _) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_merge(&self) -> bool {
+        match self {
+            Neighbor::Merge(_, _) => true,
+            _ => false,
+        }
+    }
+
     pub fn is_split(&self) -> bool {
         match self {
             Neighbor::Split(_) => true,
             _ => false,
         }
+    }
+
+    pub fn get_names() -> Vec<String> {
+        vec![
+            String::from("Recable"),
+            String::from("Swap"),
+            String::from("Merge"),
+            String::from("Split"),
+        ]
     }
 }
 

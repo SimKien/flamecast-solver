@@ -7,7 +7,7 @@ mod tests;
 mod timer;
 mod types;
 
-use chrono::TimeDelta;
+pub use chrono::TimeDelta;
 use graph_embedding::embed_directed_graph;
 pub use graph_embedding::{EmbeddingOptions, SearchDepth};
 use graph_generation::generate_random_directed_graph;
@@ -16,7 +16,7 @@ pub use plotting::PlottingVertices;
 use plotting::{plot_embedded_graph, plot_vertices_with_colors};
 pub use simulated_annealing::{
     CoolingSchedule, InitialSolutionFunction, NeighborSearchOption, OptimizationOptions,
-    SimulatedAnnealingLogger,
+    SimulatedAnnealingLogger, TimeDeltaSave,
 };
 use tests::{
     combine_test_graphs, generate_random_flamecast_instance, FLAMECAST_TEST_INSTANCES,

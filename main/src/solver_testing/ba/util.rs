@@ -35,7 +35,4 @@ pub fn run_test(
         serde_json::to_string_pretty(&instance.logger).unwrap(),
     )
     .unwrap();
-
-    //TODO: remove this
-    instance.plot_current_solution(format!("{}/{}.png", path_dir, name).as_str(), true, false);
 }

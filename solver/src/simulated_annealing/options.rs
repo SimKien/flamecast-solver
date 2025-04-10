@@ -10,6 +10,7 @@ pub enum NeighborSearchOption {
 pub enum InitialSolutionFunction {
     Random,
     Matching,
+    LowConnectivity,
 }
 
 impl InitialSolutionFunction {
@@ -25,6 +26,7 @@ impl InitialSolutionFunction {
         match self {
             InitialSolutionFunction::Random => "random".to_string(),
             InitialSolutionFunction::Matching => "matching".to_string(),
+            InitialSolutionFunction::LowConnectivity => "low connectivity".to_string(),
         }
     }
 }
@@ -35,6 +37,7 @@ pub struct OptimizationOptions {
     pub initial_temperature: f64,
     pub neighbor_search_option: NeighborSearchOption,
     pub max_iterations: usize,
+    pub number_random_vertices: usize,
     pub verbose: bool,
     pub neighbor_test_options: EmbeddingOptions,
     pub neighbor_cost_options: EmbeddingOptions,
@@ -47,6 +50,7 @@ impl OptimizationOptions {
         initial_temperature: f64,
         neighbor_search_option: NeighborSearchOption,
         max_iterations: usize,
+        number_random_vertices: usize,
         verbose: bool,
         neighbor_test_options: EmbeddingOptions,
         neighbor_cost_options: EmbeddingOptions,
@@ -57,6 +61,7 @@ impl OptimizationOptions {
             initial_temperature,
             neighbor_search_option,
             max_iterations,
+            number_random_vertices,
             verbose,
             neighbor_test_options,
             neighbor_cost_options,
@@ -70,6 +75,7 @@ impl OptimizationOptions {
             initial_temperature: 50.0,
             neighbor_search_option: NeighborSearchOption::CompleteEmbedding,
             max_iterations: 80,
+            number_random_vertices: 2,
             verbose: true,
             neighbor_test_options: EmbeddingOptions::new(
                 false,

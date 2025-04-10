@@ -66,7 +66,7 @@ pub fn generate_matching_flamecast_graph(
     return graph;
 }
 
-fn calculate_sources_drains_weights(
+pub fn calculate_sources_drains_weights(
     sources_drains_embeddings: &VertexEmbeddings,
     sources_size: usize,
     drains_size: usize,

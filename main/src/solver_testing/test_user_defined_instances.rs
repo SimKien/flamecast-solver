@@ -63,6 +63,7 @@ fn get_processing_instance(
         iteration_cooling_option.0 .1,
         NeighborSearchOption::CompleteHeuristical,
         iteration_cooling_option.1,
+        2,
         true,
         default_options.clone(),
         default_options.clone(),

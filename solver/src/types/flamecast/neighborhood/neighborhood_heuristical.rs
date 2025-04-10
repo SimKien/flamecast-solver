@@ -5,26 +5,16 @@ use crate::{
 
 use super::cluster_children;
 
-const NUM_RANDOM_VERTICES: usize = 25;
-const FIXED_NUMBER_RANDOM_VERTICES_THRESHOLD: usize = 600;
-
 impl FlamecastInstance {
     pub fn get_heuristical_candidate_neighbors_cost(
         &self,
         neighbor_test_options: &EmbeddingOptions,
+        number_random_vertices: usize,
     ) -> Vec<NeighborCost> {
         let base_graph = &self.solution_state.current_solution.base_graph;
 
-        // pick sqrt(n) amount of random vertices for neighborhood calculation if under threshold
-        let num_vertices = base_graph.get_number_of_vertices();
-        let num_random_vertices = if num_vertices < FIXED_NUMBER_RANDOM_VERTICES_THRESHOLD {
-            f64::sqrt(num_vertices as f64) as usize
-        } else {
-            NUM_RANDOM_VERTICES
-        };
-
         // generate a set of random vertices which are used to search for neighbors
-        let random_vertices = base_graph.get_sorted_random_vertices(num_random_vertices);
+        let random_vertices = base_graph.get_sorted_random_vertices(number_random_vertices);
 
         let current_costs = self
             .solution_state
