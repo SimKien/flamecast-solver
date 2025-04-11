@@ -5,7 +5,9 @@ use solver::{
 const END_PROBABILITY: f64 = 0.01;
 
 pub fn get_num_iterations(num_vertices: usize) -> usize {
-    if num_vertices >= 150 {
+    if num_vertices >= 2000 {
+        return (num_vertices as f64 * 1.5) as usize;
+    } else if num_vertices >= 150 {
         return (num_vertices as f64 * 2.0) as usize;
     } else {
         return 300;
