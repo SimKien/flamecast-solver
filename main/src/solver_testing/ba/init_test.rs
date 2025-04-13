@@ -11,8 +11,8 @@ use crate::solver_testing::{
     INSTANCES_DIR,
 };
 
-const INIT_SOLUTIONS_DIR: &str = "./ba/solutions/init";
-const INIT_FUNCTION_TYPES: [InitialSolutionFunction; 2] = [
+pub const INIT_SOLUTIONS_DIR: &str = "./ba/solutions/init";
+pub const INIT_FUNCTION_TYPES: [InitialSolutionFunction; 2] = [
     InitialSolutionFunction::Random,
     InitialSolutionFunction::Matching,
 ];

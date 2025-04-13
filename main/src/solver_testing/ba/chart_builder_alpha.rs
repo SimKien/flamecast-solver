@@ -1,10 +1,148 @@
 use plotters::{
     chart::ChartBuilder,
     data::{fitting_range, Quartiles},
-    prelude::{BitMapBackend, Boxplot, IntoDrawingArea, IntoSegmentedCoord, Polygon, SegmentValue},
+    prelude::{
+        BitMapBackend, Boxplot, Circle, IntoDrawingArea, IntoSegmentedCoord, Polygon, SegmentValue,
+    },
     series::{Histogram, LineSeries},
-    style::{Color, IntoFont, ShapeStyle, BLACK, WHITE},
+    style::{Color, IntoFont, RGBColor, ShapeStyle, BLACK, WHITE},
 };
+
+// Function for init
+pub fn build_chart_init_per_instance(
+    dir: &String,
+    name: &String,
+    num_instances: usize,
+    data: &Vec<Vec<f64>>,
+    colors: &Vec<RGBColor>,
+    labels: &Vec<String>,
+    chart_title: &String,
+    data_name: &String,
+) {
+    let file_name = format!("{}/{}", dir, name);
+    let root = BitMapBackend::new(file_name.as_str(), (1024, 768)).into_drawing_area();
+    root.fill(&WHITE).unwrap();
+
+    let all_data_iter = data.iter().flatten();
+
+    let value_range = fitting_range(all_data_iter);
+    let padding = 0.1 * (value_range.end - value_range.start);
+
+    let mut chart = ChartBuilder::on(&root)
+        .caption(chart_title, ("sans-serif", 50).into_font())
+        .margin(10)
+        .x_label_area_size(50)
+        .y_label_area_size(80)
+        .build_cartesian_2d(
+            (0..num_instances).into_segmented(),
+            0.0..value_range.end + padding,
+        )
+        .unwrap();
+
+    chart
+        .configure_mesh()
+        .disable_y_mesh()
+        .x_label_style(("sans-serif", 20).into_font())
+        .y_label_style(("sans-serif", 20).into_font())
+        .x_desc("Instance")
+        .y_desc(data_name)
+        .draw()
+        .unwrap();
+
+    for (index, data) in data.iter().enumerate() {
+        let points = data
+            .iter()
+            .enumerate()
+            .map(|(index, x)| (index.into(), *x))
+            .collect::<Vec<(SegmentValue<usize>, f64)>>();
+
+        let circles = points
+            .iter()
+            .map(|x| Circle::new(x.clone(), 2, ShapeStyle::from(colors[index]).filled()));
+        let color = colors[index].to_rgba();
+        chart
+            .draw_series(circles)
+            .unwrap()
+            .label(labels[index].as_str())
+            .legend(move |(x, y)| Circle::new((x, y), 4, ShapeStyle::from(color).filled()));
+    }
+
+    chart
+        .configure_series_labels()
+        .background_style(WHITE.to_rgba())
+        .border_style(&BLACK)
+        .draw()
+        .unwrap();
+
+    root.present().unwrap();
+}
+
+// Function for num_vertices
+pub fn build_chart_plot_rel_improvement_per_instance(
+    dir: &String,
+    name: &String,
+    num_instances: usize,
+    data: &Vec<Vec<f64>>,
+    colors: &Vec<RGBColor>,
+    labels: &Vec<String>,
+) {
+    let file_name = format!("{}/{}", dir, name);
+    let root = BitMapBackend::new(file_name.as_str(), (1024, 768)).into_drawing_area();
+    root.fill(&WHITE).unwrap();
+
+    let all_data_iter = data.iter().flatten();
+
+    let value_range = fitting_range(all_data_iter);
+    let padding = 0.1 * (value_range.end - value_range.start);
+
+    let mut chart = ChartBuilder::on(&root)
+        .caption("Improvement per Instance", ("sans-serif", 50).into_font())
+        .margin(10)
+        .x_label_area_size(50)
+        .y_label_area_size(80)
+        .build_cartesian_2d(
+            (0..num_instances).into_segmented(),
+            0.0..value_range.end + padding,
+        )
+        .unwrap();
+
+    chart
+        .configure_mesh()
+        .disable_y_mesh()
+        .x_label_style(("sans-serif", 20).into_font())
+        .y_label_style(("sans-serif", 20).into_font())
+        .x_desc("Instance")
+        .y_desc("Relative Improvement")
+        .draw()
+        .unwrap();
+
+    for (index, data) in data.iter().enumerate() {
+        let points = data
+            .iter()
+            .enumerate()
+            .map(|(index, x)| (index.into(), *x as f64))
+            .collect::<Vec<(SegmentValue<usize>, f64)>>();
+
+        let circles = points
+            .iter()
+            .map(|x| Circle::new(x.clone(), 2, ShapeStyle::from(colors[index]).filled()));
+        let color = colors[index].to_rgba();
+        chart
+            .draw_series(circles)
+            .unwrap()
+            .label(labels[index].as_str())
+            .legend(move |(x, y)| Circle::new((x, y), 4, ShapeStyle::from(color).filled()));
+    }
+
+    chart
+        .configure_series_labels()
+        .background_style(WHITE.to_rgba())
+        .border_style(&BLACK)
+        .draw()
+        .unwrap();
+
+    root.present().unwrap();
+}
 
 pub fn build_chart_num_nodes(
     dir: &String,
@@ -314,51 +452,4 @@ pub fn build_chart_no_process(
     }
 
     chart.draw_series(boxplots).unwrap();
-}
-
-pub fn build_chart_compare_init_functions(
-    dir: &String,
-    instance: &String,
-    data_random: &Vec<f32>,
-    data_matching: &Vec<f32>,
-    init_functions: Vec<String>,
-) {
-    let file_name = format!("{}/{}_compare.png", dir, instance);
-    let root = BitMapBackend::new(file_name.as_str(), (1024, 768)).into_drawing_area();
-    root.fill(&WHITE).unwrap();
-
-    let value_range = fitting_range(data_random.iter().chain(data_matching.iter()));
-    let padding = 0.1 * (value_range.end - value_range.start);
-
-    let mut chart = ChartBuilder::on(&root)
-        .caption("Comparison Matching-Random", ("sans-serif", 50).into_font())
-        .margin(10)
-        .x_label_area_size(60)
-        .y_label_area_size(60)
-        .build_cartesian_2d(
-            init_functions[..].into_segmented(),
-            0.0..value_range.end + padding,
-        )
-        .unwrap();
-
-    chart
-        .configure_mesh()
-        .disable_y_mesh()
-        .disable_x_mesh()
-        .x_label_style(("sans-serif", 20).into_font())
-        .y_label_style(("sans-serif", 20).into_font())
-        .x_desc("Initial Function")
-        .y_desc("Objective Value")
-        .draw()
-        .unwrap();
-
-    let quartiles_0 = Quartiles::new(&data_matching);
-    let quartiles_1 = Quartiles::new(&data_random);
-
-    chart
-        .draw_series(vec![
-            Boxplot::new_vertical(SegmentValue::CenterOf(&init_functions[0]), &quartiles_0),
-            Boxplot::new_vertical(SegmentValue::CenterOf(&init_functions[1]), &quartiles_1),
-        ])
-        .unwrap();
 }

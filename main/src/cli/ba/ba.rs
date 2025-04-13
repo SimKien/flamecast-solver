@@ -2,7 +2,8 @@ use clap::{Parser, Subcommand};
 
 use super::{
     process_alpha_command, process_generate_command, process_init_command,
-    process_num_vertices_command, AlphaArgs, GenerateArgs, InitArgs, NumVerticesArgs,
+    process_iterations_command, process_num_vertices_command, AlphaArgs, GenerateArgs, InitArgs,
+    IterationssArgs, NumVerticesArgs,
 };
 
 #[derive(Parser)]
@@ -21,6 +22,8 @@ pub enum BASubcommand {
     Init(InitArgs),
     /// Test various number of random vertices
     NumVertices(NumVerticesArgs),
+    /// Test various number of iterations
+    Iterations(IterationssArgs),
 }
 
 pub fn process_ba_command(args: BAArgs) {
@@ -36,6 +39,9 @@ pub fn process_ba_command(args: BAArgs) {
         }
         BASubcommand::NumVertices(sub_args) => {
             process_num_vertices_command(sub_args);
+        }
+        BASubcommand::Iterations(sub_args) => {
+            process_iterations_command(sub_args);
         }
     }
 }

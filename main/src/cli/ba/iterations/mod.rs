@@ -1,7 +1,7 @@
-mod alpha;
 mod evaluate;
+mod iterations;
 mod test;
 
-pub use alpha::*;
 pub use evaluate::*;
+pub use iterations::*;
 pub use test::*;

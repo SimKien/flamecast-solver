@@ -15,10 +15,10 @@ use crate::solver_testing::{
     INSTANCES_DIR,
 };
 
-const NUM_VERTICES_SOLUTIONS_DIR: &str = "./ba/solutions/num_vertices";
-const NUM_VERTICES: [usize; 5] = [2, 5, 10, 20, 40];
+pub const NUM_VERTICES_SOLUTIONS_DIR: &str = "./ba/solutions/num_vertices";
+pub const NUM_VERTICES: [usize; 5] = [2, 5, 10, 20, 40];
 
-const NUM_VERTICES_ALPHAS: [f64; 2] = [0.1, 0.8];
+pub const NUM_VERTICES_ALPHAS: [f64; 2] = [0.1, 0.8];
 
 pub fn num_vertices_test(dir_name: &String) {
     ThreadPoolBuilder::new()
