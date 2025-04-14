@@ -1,9 +1,9 @@
 use clap::{Parser, Subcommand};
 
 use super::{
-    process_alpha_command, process_generate_command, process_init_command,
-    process_iterations_command, process_num_vertices_command, AlphaArgs, GenerateArgs, InitArgs,
-    IterationssArgs, NumVerticesArgs,
+    process_alpha_command, process_circle_command, process_generate_command, process_init_command,
+    process_iterations_command, process_num_vertices_command, AlphaArgs, CircleArgs, GenerateArgs,
+    InitArgs, IterationssArgs, NumVerticesArgs,
 };
 
 #[derive(Parser)]
@@ -24,6 +24,8 @@ pub enum BASubcommand {
     NumVertices(NumVerticesArgs),
     /// Test various number of iterations
     Iterations(IterationssArgs),
+    /// Test circle instances
+    Circle(CircleArgs),
 }
 
 pub fn process_ba_command(args: BAArgs) {
@@ -42,6 +44,9 @@ pub fn process_ba_command(args: BAArgs) {
         }
         BASubcommand::Iterations(sub_args) => {
             process_iterations_command(sub_args);
+        }
+        BASubcommand::Circle(sub_args) => {
+            process_circle_command(sub_args);
         }
     }
 }

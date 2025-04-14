@@ -1,0 +1,19 @@
+{
+    "sources": [
+        [
+            0.0,
+            1.0
+        ]
+    ],
+    "sinks": [
+        [
+            0.0,
+            0.0
+        ]
+    ],
+    "layers": 3,
+    "capacities": [
+        null,
+        null
+    ]
+}

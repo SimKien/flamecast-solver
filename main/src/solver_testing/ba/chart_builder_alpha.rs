@@ -77,7 +77,7 @@ pub fn build_chart_init_per_instance(
     root.present().unwrap();
 }
 
-// Function for num_vertices
+// Function for num_vertices, alpha, iterations
 pub fn build_chart_plot_rel_improvement_per_instance(
     dir: &String,
     name: &String,

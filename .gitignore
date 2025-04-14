@@ -25,6 +25,7 @@ solver_test/*/*
 ba/solutions/*
 ba/instances/*
 ba/charts/*
+circle/solutions/*
 
 .vscode
 

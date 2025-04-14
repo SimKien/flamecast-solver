@@ -109,3 +109,23 @@ pub fn get_iterations_options(
 
     return options;
 }
+
+pub fn get_circle_options(init_objective_value: f64, num_vertices: usize) -> OptimizationOptions {
+    let max_iterations = get_num_iterations(num_vertices);
+    let (cooling_schedule, initial_temperature) =
+        get_cooling_exp_configuration(init_objective_value, max_iterations);
+    let number_random_vertices = 10;
+    let options = OptimizationOptions::new(
+        cooling_schedule,
+        initial_temperature,
+        NeighborSearchOption::CompleteHeuristical,
+        max_iterations,
+        number_random_vertices,
+        false,
+        EmbeddingOptions::from_depth(SearchDepth::Shallow),
+        EmbeddingOptions::from_depth(SearchDepth::Middle),
+        EmbeddingOptions::from_depth(SearchDepth::Deep),
+    );
+
+    return options;
+}

@@ -15,10 +15,10 @@ use crate::solver_testing::{
     INSTANCES_DIR,
 };
 
-pub const ITERATIONS_DIR: &str = "./ba/solutions/iterations";
+pub const ITERATIONS_SOLUTIONS_DIR: &str = "./ba/solutions/iterations";
 const ITERATIONS_ALPHAS: [f64; 2] = [0.1, 0.8];
 
-pub const ITERATIONS_MULTIPLIERS: [f64; 3] = [1.5, 3.0, 4.0];
+pub const ITERATIONS_MULTIPLIERS: [f64; 4] = [1.5, 2.0, 3.0, 4.0];
 
 pub fn iterations_test(dir_name: &String) {
     ThreadPoolBuilder::new()
@@ -37,7 +37,7 @@ pub fn iterations_test(dir_name: &String) {
         for alpha in ITERATIONS_ALPHAS.iter() {
             let solution_dir = format!(
                 "{}/{}/{}/{}",
-                ITERATIONS_DIR,
+                ITERATIONS_SOLUTIONS_DIR,
                 alpha.to_string().replace(".", "_"),
                 num_iterations.to_string().replace(".", "_"),
                 dir_name
@@ -79,7 +79,7 @@ pub fn iterations_test(dir_name: &String) {
                     for alpha in ITERATIONS_ALPHAS.iter() {
                         let solution_dir = format!(
                             "{}/{}/{}/{}",
-                            ITERATIONS_DIR,
+                            ITERATIONS_SOLUTIONS_DIR,
                             alpha.to_string().replace(".", "_"),
                             num_iterations.to_string().replace(".", "_"),
                             dir_name
