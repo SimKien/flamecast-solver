@@ -10,7 +10,7 @@ use super::{get_alpha_options, run_test, FlamecastBaseInstance, INSTANCES_DIR};
 
 pub const ALPHA_SOLUTIONS_DIR: &str = "./ba/solutions/alpha";
 
-pub const ALPHA_VALUES: [f64; 6] = [0.1, 0.3, 0.5, 0.7, 0.9, 1.0];
+pub const ALPHA_VALUES: [f64; 5] = [0.1, 0.3, 0.5, 0.7, 0.9];
 
 pub fn process_test_alpha(dir_name: &String) {
     ThreadPoolBuilder::new()

@@ -63,6 +63,7 @@ pub fn circle_test() {
     entries.par_iter().for_each(|entry| {
         let file_path = entry.path();
         if file_path.is_file() && file_path.extension().map_or(false, |ext| ext == "json") {
+            println!("Processing file: {:?}", file_path);
             let instance_name = file_path.file_stem().unwrap().to_str().unwrap();
             let instance: CircleInstance =
                 serde_json::from_reader(std::fs::File::open(&file_path).unwrap()).unwrap();

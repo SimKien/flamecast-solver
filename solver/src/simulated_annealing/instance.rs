@@ -172,6 +172,7 @@ impl<'a> SimulatedAnnealing<'a> {
             // calculate possible neighbors with corresponding costs
             let mut candidate_neighbors = self.get_candidate_neighbors();
             if candidate_neighbors.is_empty() {
+                self.iteration += 1;
                 continue;
             }
 
