@@ -48,10 +48,10 @@ pub fn evaluate_alpha(dir_name: &String) {
         }
     }
 
-    evaluate_convergence(&alpha_logs, dir_name);
+    //evaluate_convergence(&alpha_logs, dir_name);
 
     //evaluate_per_instance_when_converged(&alpha_logs, dir_name);
-    //evaluate_per_instance_relative_improvement(&alpha_logs, dir_name);
+    evaluate_per_instance_relative_improvement(&alpha_logs, dir_name);
 }
 
 fn evaluate_convergence(logs: &Vec<Vec<SimulatedAnnealingLogger>>, dir: &String) {
@@ -71,7 +71,7 @@ fn evaluate_convergence(logs: &Vec<Vec<SimulatedAnnealingLogger>>, dir: &String)
         })
         .collect::<Vec<Vec<f64>>>();
 
-    let name = format!("{}_cmp_time.png", dir);
+    let name = format!("{}_cmp_time.svg", dir);
 
     build_chart_time_converges_alpha(
         &ALPHA_CHARTS_DIR.to_string(),
@@ -151,7 +151,7 @@ fn evaluate_per_instance_relative_improvement(
         });
     }
 
-    let name = format!("{}_cmp_alphas.png", dir);
+    let name = format!("{}_cmp_alphas.svg", dir);
 
     build_chart_plot_rel_improvement_per_instance(
         &ALPHA_CHARTS_DIR.to_string(),

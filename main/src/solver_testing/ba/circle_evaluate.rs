@@ -91,7 +91,7 @@ fn evaluate_rel_correct(
 
     build_chart_node_improvement(
         &CIRCLE_CHARTS_DIR.to_string(),
-        &"rel_found.png".to_string(),
+        &"rel_found.svg".to_string(),
         &data,
         &node_amounts,
         &COLORS.to_vec(),

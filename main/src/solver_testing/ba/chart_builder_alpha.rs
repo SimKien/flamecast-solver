@@ -3,7 +3,7 @@ use plotters::{
     data::{fitting_range, Quartiles},
     prelude::{
         BitMapBackend, Boxplot, Circle, IntoDrawingArea, IntoLogRange, IntoSegmentedCoord,
-        SegmentValue,
+        SVGBackend, SegmentValue,
     },
     style::{Color, IntoFont, RGBColor, ShapeStyle, BLACK, WHITE},
 };
@@ -15,8 +15,7 @@ pub fn build_chart_time_converges_alpha(
     labels: &Vec<f64>,
 ) {
     let file_name = format!("{}/{}", dir, name);
-    let root = BitMapBackend::new(file_name.as_str(), (1024, 768)).into_drawing_area();
-    root.fill(&WHITE).unwrap();
+    let root = SVGBackend::new(file_name.as_str(), (1024, 768)).into_drawing_area();
 
     let all_data_iter = data.iter().flatten();
 
@@ -165,8 +164,8 @@ pub fn build_chart_node_improvement(
     position: SeriesLabelPosition,
 ) {
     let file_name = format!("{}/{}", dir, name);
-    let root = BitMapBackend::new(file_name.as_str(), (1024, 768)).into_drawing_area();
-    root.fill(&WHITE).unwrap();
+    let root = SVGBackend::new(file_name.as_str(), (1024, 768)).into_drawing_area();
+    //root.fill(&WHITE).unwrap();
 
     let all_data_iter = data.iter().flatten().map(|x| x.1).collect::<Vec<f64>>();
 
@@ -204,7 +203,7 @@ pub fn build_chart_node_improvement(
 
         let circles = points
             .iter()
-            .map(|x| Circle::new(x.clone(), 2, ShapeStyle::from(colors[index]).filled()));
+            .map(|x| Circle::new(x.clone(), 4, ShapeStyle::from(colors[index]).filled()));
         let color = colors[index].to_rgba();
         chart
             .draw_series(circles)
@@ -217,7 +216,6 @@ pub fn build_chart_node_improvement(
         .configure_series_labels()
         .position(position)
         .label_font(("arial", 41).into_font())
-        .background_style(WHITE.to_rgba())
         .border_style(&BLACK)
         .draw()
         .unwrap();
@@ -572,8 +570,8 @@ pub fn build_chart_plot_rel_improvement_per_instance(
     labels: &Vec<String>,
 ) {
     let file_name = format!("{}/{}", dir, name);
-    let root = BitMapBackend::new(file_name.as_str(), (1024, 768)).into_drawing_area();
-    root.fill(&WHITE).unwrap();
+    let root = SVGBackend::new(file_name.as_str(), (1024, 768)).into_drawing_area();
+    //root.fill(&WHITE).unwrap();
 
     let all_data_iter = data.iter().flatten();
 
@@ -624,7 +622,6 @@ pub fn build_chart_plot_rel_improvement_per_instance(
     chart
         .configure_series_labels()
         .label_font(("arial", 50).into_font())
-        .background_style(WHITE.to_rgba())
         .border_style(&BLACK)
         .draw()
         .unwrap();
